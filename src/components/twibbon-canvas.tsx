@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 type TransformType = {
 	x: number;
@@ -13,40 +13,69 @@ type CanvasProps = {
 	setTransform: React.Dispatch<React.SetStateAction<TransformType>>;
 	userPhoto: HTMLImageElement | null;
 	frameSrc: string;
+	frameWidth?: number;
+	frameHeight?: number;
 	canvasRef: React.RefObject<HTMLCanvasElement | null>;
+	onDimensionsLoaded?: (width: number, height: number) => void;
 };
 
-export default function TwibbonCanvas({ userPhoto, transform, frameSrc, isEditMode, setTransform, canvasRef }: CanvasProps) {
-	const size = 500;
+export default function TwibbonCanvas({
+	userPhoto,
+	transform,
+	frameSrc,
+	frameWidth = 1080,
+	frameHeight = 1080,
+	isEditMode,
+	setTransform,
+	canvasRef,
+	onDimensionsLoaded,
+}: CanvasProps) {
+	const [dimensions, setDimensions] = useState({ width: frameWidth, height: frameHeight });
 	const frameRef = useRef(new Image());
+	const isDragging = useRef(false);
+	const lastPos = useRef({ x: 0, y: 0 });
 
-	function draw() {
+	const draw = useCallback(() => {
 		const canvas = canvasRef?.current;
 		if (!canvas) return;
 
 		const ctx = canvas.getContext("2d");
-		ctx?.clearRect(0, 0, size, size);
+		if (!ctx) return;
 
+		const { width, height } = dimensions;
+		ctx.clearRect(0, 0, width, height);
+
+		// 1. Draw User Photo underneath
 		if (userPhoto) {
-			ctx?.save();
-			ctx?.translate(size / 2 + transform.x, size / 2 + transform.y);
-			ctx?.rotate((transform.rotate * Math.PI) / 180);
-			ctx?.scale(transform.scale / 100, transform.scale / 100);
-			ctx?.drawImage(userPhoto, -userPhoto.width / 2, -userPhoto.height / 2);
-			ctx?.restore();
+			ctx.save();
+			ctx.translate(width / 2 + transform.x, height / 2 + transform.y);
+			ctx.rotate((transform.rotate * Math.PI) / 180);
+			ctx.scale(transform.scale / 100, transform.scale / 100);
+			ctx.drawImage(userPhoto, -userPhoto.width / 2, -userPhoto.height / 2);
+			ctx.restore();
 		}
-		ctx?.drawImage(frameRef.current, 0, 0, size, size);
-	}
+
+		// 2. Draw Twibbon Frame overlay
+		if (frameRef.current.complete && frameRef.current.naturalWidth > 0) {
+			ctx.drawImage(frameRef.current, 0, 0, width, height);
+		}
+	}, [canvasRef, dimensions, userPhoto, transform]);
 
 	useEffect(() => {
-		frameRef.current.src = frameSrc;
-		frameRef.current.onload = draw;
-	}, [frameSrc]);
+		const img = frameRef.current;
+		img.crossOrigin = "anonymous";
+		img.src = frameSrc;
+		img.onload = () => {
+			const w = img.naturalWidth || frameWidth || 1080;
+			const h = img.naturalHeight || frameHeight || 1080;
+			setDimensions({ width: w, height: h });
+			onDimensionsLoaded?.(w, h);
+		};
+	}, [frameSrc, frameWidth, frameHeight, onDimensionsLoaded]);
 
-	useEffect(draw, [userPhoto, transform]);
-
-	const isDragging = useRef(false);
-	const lastPos = useRef({ x: 0, y: 0 });
+	useEffect(() => {
+		draw();
+	}, [draw]);
 
 	function handleDragDown(e: React.PointerEvent<HTMLCanvasElement>) {
 		if (!isEditMode) return;
@@ -56,20 +85,20 @@ export default function TwibbonCanvas({ userPhoto, transform, frameSrc, isEditMo
 	}
 
 	function handleDragMove(e: React.PointerEvent<HTMLCanvasElement>) {
-		if (!isEditMode) return;
-		if (!isDragging.current) return;
+		if (!isEditMode || !isDragging.current || !canvasRef.current) return;
 
 		const dx = e.clientX - lastPos.current.x;
 		const dy = e.clientY - lastPos.current.y;
 		lastPos.current = { x: e.clientX, y: e.clientY };
 
-		const canvas = canvasRef.current!;
-		const ratio = canvas.width / canvas.clientWidth;
+		const canvas = canvasRef.current;
+		const ratioX = canvas.width / canvas.clientWidth;
+		const ratioY = canvas.height / canvas.clientHeight;
 
 		setTransform((prev) => ({
 			...prev,
-			x: prev.x + dx * ratio,
-			y: prev.y + dy * ratio,
+			x: prev.x + dx * ratioX,
+			y: prev.y + dy * ratioY,
 		}));
 	}
 
@@ -78,5 +107,19 @@ export default function TwibbonCanvas({ userPhoto, transform, frameSrc, isEditMo
 		isDragging.current = false;
 	}
 
-	return <canvas ref={canvasRef} width={size} height={size} className={`w-full h-auto ${isEditMode && "cursor-move"}`} onPointerDown={handleDragDown} onPointerMove={handleDragMove} onPointerUp={handleDragUp} />;
+	return (
+		<div className="relative flex justify-center items-center bg-[#07080a] border border-[#2f3031] rounded-2xl overflow-hidden p-2 shadow-2xl">
+			<canvas
+				ref={canvasRef}
+				width={dimensions.width}
+				height={dimensions.height}
+				className={`max-h-[60vh] max-w-full w-auto h-auto object-contain select-none touch-none rounded-xl ${
+					isEditMode ? "cursor-move" : ""
+				}`}
+				onPointerDown={handleDragDown}
+				onPointerMove={handleDragMove}
+				onPointerUp={handleDragUp}
+			/>
+		</div>
+	);
 }

@@ -3,18 +3,16 @@
 ## 1. Overview & Objectives
 
 Dokumen rencana implementasi ini berfokus pada dua kapabilitas inti:
-1. **Dukungan Aspek Rasio Kanvas Fleksibel:** Menghapus batasan kanvas kaku $1:1$ ($500 \times 500$ px). Kanvas twibbon harus menyesuaikan secara proporsional sesuai rasio asli gambar frame yang diunggah (misal: 4:5 portrait Instagram, 16:9 banner landscape, 9:16 reels/story, dsb.) tanpa memaksa pemotongan (*crop*).
+
+1. **Dukungan Aspek Rasio Kanvas Fleksibel:** Menghapus batasan kanvas kaku $1:1$ ($500 \times 500$ px). Kanvas twibbon harus menyesuaikan secara proporsional sesuai rasio asli gambar frame yang diunggah (misal: 4:5 portrait Instagram, 16:9 banner landscape, 9:16 reels/story, dsb.) tanpa memaksa pemotongan (_crop_).
 2. **Backend Validator & Supabase Storage Integration:** Membangun validasi sisi server (backend) untuk memeriksa integritas berkas (MIME type sejati, ekstensi file yang diizinkan, dan batas ukuran maksimal 3MB) sebelum berkas disimpan ke dalam bucket publik Supabase Storage.
 3. **Konfigurasi Environment Variables:** Mendefinisikan seluruh variabel lingkungan (`.env`) yang dibutuhkan.
 
 ## 2. Design System Reference
 
 Seluruh implementasi antarmuka untuk dropzone upload, pesan validasi, indikator loading, dan preview kanvas merujuk pada:
+
 - **Design Reference File:** `DevReferences/Skills/DESIGN.md` (Raycast Dark Style)
-- **Komponen Kunci:**
-  - Dropzone upload memakai border dashed `#454647` (Iron) dengan efek hover border `#ff6363` (Coral Pulse).
-  - Pesan error validasi (file > 3MB atau tipe salah) disajikan dalam badge/alert `#452324` (Ember Hush) dengan teks `#ff6363`.
-  - Kanvas preview dibungkus dalam container `#111214` (Obsidian) dengan drop shadow dan border halus (`#2f3031`).
 
 ---
 
@@ -125,16 +123,24 @@ serve(async (req) => {
     const slug = (formData.get("slug") as string)?.trim().toLowerCase();
 
     if (!file || !slug) {
-      return new Response(JSON.stringify({ error: "File frame dan slug wajib disertakan." }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "File frame dan slug wajib disertakan." }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
 
     // 1. Validasi Ukuran File (Maksimal 3MB)
     if (file.size > MAX_FILE_SIZE) {
       return new Response(
-        JSON.stringify({ error: `Ukuran file melebihi batas maksimal 3MB (Ukuran file: ${(file.size / (1024 * 1024)).toFixed(2)} MB).` }),
+        JSON.stringify({
+          error: `Ukuran file melebihi batas maksimal 3MB (Ukuran file: ${(
+            file.size /
+            (1024 * 1024)
+          ).toFixed(2)} MB).`,
+        }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -143,7 +149,10 @@ serve(async (req) => {
     const fileExt = file.name.split(".").pop()?.toLowerCase() || "";
     if (!ALLOWED_EXTENSIONS.includes(fileExt)) {
       return new Response(
-        JSON.stringify({ error: "Ekstensi file tidak didukung. Hanya diperbolehkan: .png, .jpg, .jpeg, .webp." }),
+        JSON.stringify({
+          error:
+            "Ekstensi file tidak didukung. Hanya diperbolehkan: .png, .jpg, .jpeg, .webp.",
+        }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -155,7 +164,10 @@ serve(async (req) => {
 
     if (!detectedMime || !ALLOWED_MIME_TYPES.includes(detectedMime)) {
       return new Response(
-        JSON.stringify({ error: "Format berkas tidak valid atau rusak. Harus berupa gambar PNG, JPG/JPEG, atau WEBP asli." }),
+        JSON.stringify({
+          error:
+            "Format berkas tidak valid atau rusak. Harus berupa gambar PNG, JPG/JPEG, atau WEBP asli.",
+        }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -168,7 +180,8 @@ serve(async (req) => {
 
     // 5. Upload ke Supabase Storage (Bucket: twibbon-frames)
     const fileName = `${slug}-${Date.now()}.${fileExt}`;
-    const bucketName = Deno.env.get("VITE_SUPABASE_STORAGE_BUCKET") || "twibbon-frames";
+    const bucketName =
+      Deno.env.get("VITE_SUPABASE_STORAGE_BUCKET") || "twibbon-frames";
 
     const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
       .from(bucketName)
@@ -198,10 +211,13 @@ serve(async (req) => {
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message || "Internal server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: err.message || "Internal server error" }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 });
 ```
@@ -211,6 +227,7 @@ serve(async (req) => {
 ## 5. Rekayasa Kanvas Aspek Rasio Fleksibel (`TwibbonCanvas.tsx`)
 
 ### 5.1 Permasalahan Pada Implementasi Lama:
+
 - Kode saat ini mematok kanvas fixed $500 \times 500$ px:
   ```typescript
   const size = 500;
@@ -220,16 +237,19 @@ serve(async (req) => {
 - Ini menyebabkan gambar non-persegi (seperti 1080x1350 atau 1920x1080) terdistorsi atau terpotong paksa menjadi persegi $1:1$.
 
 ### 5.2 Desain Solusi Kanvas Dinamis:
+
 1. **Deteksi Dimensi Asli:** Saat gambar frame dimuat (`frameRef.onload`), baca `naturalWidth` dan `naturalHeight`.
 2. **Normalisasi Resolusi Kanvas Ekspor:**
-   - Gunakan resolusi dasar sesuai ukuran asli frame (misal $1080 \times 1350$ px) agar kualitas unduhan tetap tajam (*high-resolution*).
+   - Gunakan resolusi dasar sesuai ukuran asli frame (misal $1080 \times 1350$ px) agar kualitas unduhan tetap tajam (_high-resolution_).
    - Tentukan `width = frame.naturalWidth` dan `height = frame.naturalHeight`.
 3. **Titik Pusat Transformasi Foto:**
    - Pusatkan translasi pada koordinat tengah kanvas:
      $$\text{center}_X = \frac{\text{width}}{2} + \text{transform.x}$$
      $$\text{center}_Y = \frac{\text{height}}{2} + \text{transform.y}$$
 4. **Normalisasi Pointer Drag untuk Rasio Non-1:1:**
+
    - Rasio skala drag pada sumbu X dan Y dihitung terpisah sesuai ukuran display visual elemen kanvas:
+
      ```typescript
      const ratioX = canvas.width / canvas.clientWidth;
      const ratioY = canvas.height / canvas.clientHeight;
@@ -240,6 +260,7 @@ serve(async (req) => {
        y: prev.y + dy * ratioY,
      }));
      ```
+
 5. **Container Preview CSS yang Adaptif:**
    - Terapkan `max-h-[70vh]`, `max-w-full`, dan `w-auto h-auto object-contain` sehingga frame dengan aspek rasio apapun (potret tinggi atau lanskap lebar) tetap proporsional dan tidak melebihi area pandang layar pengguna.
 

@@ -1,9 +1,28 @@
 @import "tailwindcss";
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+:root {
+	--color-void-black: #040506;
+	--color-ink: #07080a;
+	--color-obsidian: #111214;
+	--color-graphite: #1b1c1e;
+	--color-smoke: #6a6b6c;
+	--color-ash: #9c9c9d;
+	--color-mist: #e6e6e6;
+	--color-iron: #454647;
+	--color-slate: #2f3031;
+	--color-coral-pulse: #ff6363;
+	--color-success-green: #59d499;
+}
 
 body {
-	font-family: "Montserrat", sans-serif;
-	font-optical-sizing: auto;
-	font-weight: <weight>;
-	font-style: normal;
+	font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	background-color: var(--color-void-black);
+	color: #ffffff;
+	min-height: 100vh;
+	margin: 0;
+}
+
+.font-mono {
+	font-family: "JetBrains Mono", Menlo, Monaco, Courier, monospace;
 }
