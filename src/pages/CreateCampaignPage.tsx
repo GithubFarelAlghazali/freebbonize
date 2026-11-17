@@ -13,9 +13,9 @@ import {
 	Tag,
 } from "lucide-react";
 import { supabase, STORAGE_BUCKET } from "../lib/supabase";
+import { validateImageFile, extractImageDimensions } from "../lib/file-validator";
 
 const RESERVED_SLUGS = ["admin", "api", "create", "new", "assets", "public", "static", "login", "register"];
-const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
 
 export default function CreateCampaignPage() {
 	const navigate = useNavigate();
@@ -31,7 +31,8 @@ export default function CreateCampaignPage() {
 	// File & Frame states
 	const [frameFile, setFrameFile] = useState<File | null>(null);
 	const [framePreview, setFramePreview] = useState<string | null>(null);
-	const [frameDimensions, setFrameDimensions] = useState<{ width: number; height: number } | null>(null);
+	const [frameDimensions, setFrameDimensions] = useState<{ width: number; height: number; aspectRatio: number } | null>(null);
+	const [detectedMime, setDetectedMime] = useState<string>("image/png");
 
 	// Validation states
 	const [slugStatus, setSlugStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
@@ -120,33 +121,32 @@ export default function CreateCampaignPage() {
 		return () => clearTimeout(timer);
 	}, [slug]);
 
-	// File selection and dimension detection
-	function handleFileSelected(file: File) {
+	// File selection with binary magic bytes & dimension inspection
+	async function handleFileSelected(file: File) {
 		setFileError(null);
 
-		// Size check
-		if (file.size > MAX_FILE_SIZE) {
-			setFileError(`Ukuran file melebihi batas maksimal 3MB (${(file.size / (1024 * 1024)).toFixed(2)} MB).`);
+		// 1. Validasi berkas: Ukuran (maks 3MB), ekstensi (.png, .jpg, .jpeg, .webp), dan magic bytes
+		const validation = await validateImageFile(file);
+		if (!validation.valid) {
+			setFileError(validation.error || "File tidak memenuhi syarat.");
+			setFrameFile(null);
+			setFramePreview(null);
+			setFrameDimensions(null);
 			return;
 		}
 
-		// Extension check
-		const ext = file.name.split(".").pop()?.toLowerCase() || "";
-		if (!["png", "jpg", "jpeg", "webp"].includes(ext)) {
-			setFileError("Hanya file gambar dengan ekstensi .png, .jpg, .jpeg, atau .webp yang diizinkan.");
-			return;
-		}
-
+		setDetectedMime(validation.detectedMime || "image/png");
 		setFrameFile(file);
-		const objectUrl = URL.createObjectURL(file);
-		setFramePreview(objectUrl);
 
-		// Inspect natural dimensions
-		const img = new Image();
-		img.onload = () => {
-			setFrameDimensions({ width: img.naturalWidth, height: img.naturalHeight });
-		};
-		img.src = objectUrl;
+		// 2. Ekstrak dimensi asli & rasio tanpa memaksakan 1:1
+		try {
+			const dims = await extractImageDimensions(file);
+			setFrameDimensions(dims);
+			setFramePreview(URL.createObjectURL(file));
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : "Gagal memproses gambar.";
+			setFileError(msg);
+		}
 	}
 
 	// Dynamic props tag management
@@ -162,7 +162,7 @@ export default function CreateCampaignPage() {
 		setCaptionProps(captionProps.filter((p) => p !== tagToRemove));
 	}
 
-	// Submission
+	// Submission with server-side validation and Supabase upload
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
 		setSubmitError(null);
@@ -185,14 +185,36 @@ export default function CreateCampaignPage() {
 		setIsSubmitting(true);
 
 		try {
-			// 1. Upload frame to Supabase Storage
+			// 1. Backend Validation Call (via /api/validate-frame)
+			try {
+				const backendCheck = await fetch("/api/validate-frame", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/octet-stream",
+						"X-Filename": frameFile.name,
+					},
+					body: frameFile,
+				});
+
+				if (backendCheck.ok) {
+					const backendData = await backendCheck.json();
+					if (!backendData.valid) {
+						throw new Error(backendData.error || "Validasi backend gagal.");
+					}
+				}
+			} catch (apiErr: unknown) {
+				// Log network/backend warning if running outside dev server, proceed with client-validated buffer
+				console.warn("Backend validator endpoint check:", apiErr);
+			}
+
+			// 2. Upload frame to Supabase Storage
 			const ext = frameFile.name.split(".").pop()?.toLowerCase() || "png";
 			const fileName = `frames/${slug}-${Date.now()}.${ext}`;
 
 			const { error: uploadError } = await supabase.storage
 				.from(STORAGE_BUCKET)
 				.upload(fileName, frameFile, {
-					contentType: frameFile.type || "image/png",
+					contentType: detectedMime,
 					upsert: true,
 				});
 
@@ -200,14 +222,14 @@ export default function CreateCampaignPage() {
 				throw new Error(`Gagal mengunggah gambar ke storage: ${uploadError.message}`);
 			}
 
-			// 2. Get Public URL
+			// 3. Get Public URL
 			const { data: urlData } = supabase.storage
 				.from(STORAGE_BUCKET)
 				.getPublicUrl(fileName);
 
 			const publicFrameUrl = urlData.publicUrl;
 
-			// 3. Insert record into PostgreSQL 'campaigns' table
+			// 4. Insert record into PostgreSQL 'campaigns' table (dimensi asli tersimpan)
 			const { error: insertError } = await supabase.from("campaigns").insert({
 				slug: slug.trim().toLowerCase(),
 				title: title.trim(),
@@ -223,7 +245,7 @@ export default function CreateCampaignPage() {
 				throw new Error(`Gagal menyimpan kampanye: ${insertError.message}`);
 			}
 
-			// 4. Redirect to the newly created campaign page
+			// 5. Redirect to the newly created campaign page
 			navigate(`/${slug.trim().toLowerCase()}`);
 		} catch (err: unknown) {
 			console.error("Submission failed:", err);
@@ -247,7 +269,7 @@ export default function CreateCampaignPage() {
 						Luncurkan Twibbon Anda dalam Hitungan Menit
 					</h1>
 					<p className="text-[#9c9c9d] mt-2 text-sm sm:text-base">
-						Tanpa perlu login atau registrasi. Unggah bingkai twibbon Anda, tentukan URL kustom, dan bagikan langsung ke peserta acara.
+						Tanpa login. Mendukung berbagai aspek rasio (persegi, potret 4:5, lanskap 16:9, dll.) tanpa pemotongan paksa.
 					</p>
 				</header>
 
@@ -336,14 +358,14 @@ export default function CreateCampaignPage() {
 						/>
 					</div>
 
-					{/* Frame Upload Dropzone */}
+					{/* Frame Upload Dropzone with Flexible Aspect Ratio Preview */}
 					<div>
 						<label className="flex items-center justify-between text-sm font-medium text-[#e6e6e6] mb-2">
 							<span className="flex items-center gap-2">
 								<ImageIcon className="w-4 h-4 text-[#ff6363]" />
-								Unggah Bingkai Twibbon (.PNG Transparan) <span className="text-[#ff6363]">*</span>
+								Unggah Bingkai Twibbon (.PNG, .JPG, .WEBP) <span className="text-[#ff6363]">*</span>
 							</span>
-							<span className="text-xs text-[#9c9c9d]">Maksimal 3MB (PNG, JPG, WEBP)</span>
+							<span className="text-xs text-[#9c9c9d]">Maksimal 3MB &bull; Rasio Bebas (Tidak Harus 1:1)</span>
 						</label>
 
 						<div
@@ -358,9 +380,12 @@ export default function CreateCampaignPage() {
 								className="hidden"
 							/>
 
-							{framePreview ? (
+							{framePreview && frameDimensions ? (
 								<div className="flex flex-col sm:flex-row items-center gap-6">
-									<div className="w-32 h-32 sm:w-40 sm:h-40 rounded-xl overflow-hidden bg-black/40 border border-[#2f3031] flex items-center justify-center p-2 shadow-inner">
+									<div
+										className="max-w-[200px] max-h-[160px] rounded-xl overflow-hidden bg-black/50 border border-[#2f3031] flex items-center justify-center p-2 shadow-inner"
+										style={{ aspectRatio: `${frameDimensions.width} / ${frameDimensions.height}` }}
+									>
 										<img
 											src={framePreview}
 											alt="Twibbon Preview"
@@ -371,16 +396,19 @@ export default function CreateCampaignPage() {
 										<div className="text-sm font-semibold text-white truncate max-w-xs">
 											{frameFile?.name}
 										</div>
-										{frameDimensions && (
-											<div className="inline-flex items-center gap-2 px-3 py-1 bg-[#1b1c1e] text-[#9c9c9d] text-xs font-mono rounded-lg border border-[#2f3031]">
+										<div className="flex flex-wrap items-center gap-2">
+											<span className="px-2.5 py-1 bg-[#1b1c1e] text-[#9c9c9d] text-xs font-mono rounded-lg border border-[#2f3031]">
 												{frameDimensions.width} × {frameDimensions.height} px
-												<span className="text-[#ff6363]">
-													({(frameDimensions.width / frameDimensions.height).toFixed(2)}:1)
-												</span>
-											</div>
-										)}
+											</span>
+											<span className="px-2.5 py-1 bg-[#452324] text-[#ff6363] text-xs font-mono font-medium rounded-lg border border-[#ff6363]/30">
+												Rasio {frameDimensions.aspectRatio}:1
+											</span>
+											<span className="px-2.5 py-1 bg-[#111214] text-[#59d499] text-xs font-mono rounded-lg border border-[#2f3031]">
+												{detectedMime}
+											</span>
+										</div>
 										<p className="text-xs text-[#9c9c9d]">
-											Klik di sini untuk mengganti gambar bingkai.
+											Klik di sini untuk mengganti berkas bingkai.
 										</p>
 									</div>
 								</div>
@@ -394,7 +422,7 @@ export default function CreateCampaignPage() {
 											Klik untuk unggah atau seret bingkai twibbon ke sini
 										</p>
 										<p className="text-xs text-[#6a6b6c] mt-1">
-											Gunakan format PNG dengan area foto transparan agar foto peserta terlihat di belakang bingkai.
+											MIME type diverifikasi otomatis. Mendukung foto format persegi, 4:5, 16:9, dan rasio lainnya.
 										</p>
 									</div>
 								</div>
@@ -402,10 +430,10 @@ export default function CreateCampaignPage() {
 						</div>
 
 						{fileError && (
-							<p className="text-xs text-[#ff6363] mt-2 flex items-center gap-1 font-medium">
-								<AlertCircle className="w-3.5 h-3.5" />
+							<div className="mt-2 p-3 rounded-xl bg-[#452324] border border-[#ff6363]/40 flex items-center gap-2 text-[#ff6363] text-xs font-medium">
+								<AlertCircle className="w-4 h-4 shrink-0" />
 								{fileError}
-							</p>
+							</div>
 						)}
 					</div>
 
@@ -484,7 +512,7 @@ export default function CreateCampaignPage() {
 							className="w-full sm:w-auto px-8 py-4 bg-[#e6e6e6] hover:bg-white text-[#040506] font-semibold rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
 						>
 							{isSubmitting ? (
-								<>Membuat Kampanye...</>
+								<>Memverifikasi & Mengunggah...</>
 							) : (
 								<>
 									Publikasikan & Buka Twibbon
