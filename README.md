@@ -111,6 +111,8 @@ Open `http://localhost:5173` in your browser.
 | `pnpm build` | Type-check and build production bundle |
 | `pnpm preview` | Preview production build locally |
 | `pnpm lint` | Run ESLint with zero-warning standard |
+| `pnpm db:migrate` | Run all SQL migrations in order |
+| `pnpm db:seed` | Run database seeders (sample campaigns) |
 
 ---
 
