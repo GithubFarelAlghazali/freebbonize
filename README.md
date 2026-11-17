@@ -29,18 +29,64 @@ Freebbonize mengusung sistem desain **Raycast Midnight Command Center** bernuans
 
 Form instan tanpa autentikasi untuk meluncurkan kampanye baru dengan _slug_ kustom, upload bingkai rasio bebas, preview interaktif, dan generator template caption.
 
-| Preview Tampilan                                                                                 | Deskripsi Alur                                                                                                                                                                                                                                                                                                |
-| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| <img src="docs/screenshots/create-campaign.png" alt="Halaman Pembuatan Kampanye" width="100%" /> | **Halaman Pembuatan Kampanye (`/`)**<br><br>Penyelenggara acara dapat menentukan URL kustom slug, mengunggah bingkai twibbon berasio bebas (drag & drop), melihat preview dimensi otomatis, dan menyusun template kalimat caption media sosial dengan tag variabel dinamis seperti `[nama]` dan `[instansi]`. |
+| Preview Tampilan                                                                                                  | Deskripsi Alur                                                                                                                                                                                                                                                                                             |
+| ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <img src="DevReferences/imgs/1. Halaman Pembuatan Kampanye.webp" alt="Halaman Pembuatan Kampanye" width="100%" /> | **Halaman Pembuatan Kampanye (`/`)**<br><br>Penyelenggara acara dapat menentukan URL kustom slug, mengunggah bingkai twibbon berasio bebas (drag & drop), melihat preview dimensi otomatis, dan menyusun template kalimat caption media sosial dengan tag variabel dinamis seperti `[NAMA]` dan `[ACARA]`. |
 
 ### Halaman Kampanye Dinamis (`/:slug`)
 
 Halaman peserta yang bersih untuk mengunggah foto, menyesuaikan posisi gambar di bawah bingkai twibbon secara _real-time_, dan mengunduh hasil akhir dalam resolusi tinggi.
 
-|                                                      Step 1: Landing (Unggah Foto)                                                      |                                                                  Step 2: Adjust (Atur Kanvas)                                                                  |                                                               Step 3: Ready (Unduh & Caption)                                                               |
-| :-------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------: |
-|                       <img src="docs/screenshots/campaign-landing.png" alt="Step 1: Landing Page" width="100%" />                       |                                  <img src="docs/screenshots/campaign-adjust.png" alt="Step 2: Adjust Canvas" width="100%" />                                   |                                <img src="docs/screenshots/campaign-ready.png" alt="Step 3: Ready & Download" width="100%" />                                |
-| **1. Unggah Foto Peserta**<br>Peserta membuka tautan kampanye dan memilih atau menyeret (_drag & drop_) foto profil yang akan dipasang. | **2. Penyesuaian Kanvas 2D**<br>Interaksi geser/drag bebas foto, kontrol skala perbesaran ($10\% - 250\%$), dan slider rotasi ($-180^\circ$ s.d. $180^\circ$). | **3. Salin Caption & Unduh**<br>Pengisian variabel form caption dinamis, salin teks ke clipboard dalam 1 klik, dan ekspor instan gambar PNG resolusi penuh. |
+<table width="100%">
+  <thead>
+    <tr>
+      <th width="50%" align="center">Step 1: Landing (Unggah Foto)</th>
+      <th width="50%" align="center">Step 2: Adjust (Atur Kanvas)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td width="50%" align="center" valign="top">
+        <img src="DevReferences/imgs/1. Landing.webp" alt="Step 1: Landing Page" width="100%" />
+        <br /><br />
+        <p align="left">
+          <b>1. Unggah Foto Peserta</b><br />
+          Peserta membuka tautan kampanye dan memilih atau menyeret (<i>drag & drop</i>) foto profil yang akan dipasang.
+        </p>
+      </td>
+      <td width="50%" align="center" valign="top">
+        <img src="DevReferences/imgs/2. Adjust.webp" alt="Step 2: Adjust Canvas" width="100%" />
+        <br /><br />
+        <p align="left">
+          <b>2. Penyesuaian Kanvas 2D</b><br />
+          Interaksi geser/drag bebas foto, kontrol skala perbesaran (10% - 250%), dan slider rotasi (-180&deg; s.d. 180&deg;).
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <th width="50%" align="center">Step 3: Ready (Unduh & Caption)</th>
+      <th width="50%" align="center">Hasil Twibbon Akhir</th>
+    </tr>
+    <tr>
+      <td width="50%" align="center" valign="top">
+        <img src="DevReferences/imgs/3. Ready.webp" alt="Step 3: Ready & Download" width="100%" />
+        <br /><br />
+        <p align="left">
+          <b>3. Salin Caption & Unduh</b><br />
+          Pengisian variabel form caption dinamis, salin teks ke clipboard dalam 1 klik, dan ekspor instan gambar PNG resolusi penuh.
+        </p>
+      </td>
+      <td width="50%" align="center" valign="top">
+        <img src="DevReferences/imgs/4. Result.webp" alt="Hasil Twibbon Akhir" width="100%" />
+        <br /><br />
+        <p align="left">
+          <b>4. Hasil Twibbon Akhir</b><br />
+          Contoh berkas foto peserta yang telah berhasil dikomposisikan dengan bingkai beresolusi tinggi, siap dibagikan ke media sosial.
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 ---
 
@@ -124,7 +170,7 @@ flowchart TD
 Database PostgreSQL dirancang dengan dua tabel inti (`campaigns` dan `campaign_analytics`) yang saling berelasi:
 
 <div align="center">
-  <img src="docs/database-schema.png" alt="Rancangan Database PostgreSQL Freebbonize" width="100%" />
+  <img src="DevReferences/imgs/schema.webp" alt="Rancangan Database PostgreSQL Freebbonize" width="100%" />
 </div>
 
 <br />
