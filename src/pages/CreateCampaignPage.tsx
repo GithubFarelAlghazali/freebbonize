@@ -320,7 +320,10 @@ export default function CreateCampaignPage() {
       <nav className="w-full max-w-4xl mb-6 px-4 py-2.5 rounded-xl border border-[#363739] bg-[#07080a]/80 backdrop-blur-md flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-2.5">
           {/* Azure Diamond Mark */}
-          <div className="w-4 h-4 bg-[#4d8bff] rotate-45 rounded-[2px] shadow-[0_0_8px_rgba(77,139,255,0.6)]" />
+          <img
+            src="/Main-Logo.png"
+            className="w-4 h-4 bg-[#4d8bff] rotate-45 rounded-[2px] shadow-[0_0_8px_rgba(77,139,255,0.6)]"
+          />
           <span className="text-sm font-semibold tracking-tight text-white">
             Freebbonize
           </span>
@@ -336,7 +339,7 @@ export default function CreateCampaignPage() {
         <header className="mb-8 border-b border-[#2f3031] pb-6">
           <div className="flex items-center gap-2 text-[#4d8bff] text-xs font-semibold tracking-wider uppercase mb-2">
             <span className="w-1.5 h-1.5 rounded-full bg-[#4d8bff]" />
-            Buat Kampanye Twibbon Baru
+            Buat Twibbon Baru
           </div>
           <h1 className="text-2xl sm:text-4xl font-normal text-white tracking-tight">
             Buat Twibbon Anda dalam Hitungan Menit
@@ -577,7 +580,7 @@ export default function CreateCampaignPage() {
                 {captionProps.map((prop) => (
                   <span
                     key={prop}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#1b1c1e] text-[#e6e6e6] text-xs font-mono rounded-md border border-[#2f3031]"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-2 bg-[#1b1c1e] text-[#e6e6e6] text-xs font-mono rounded-md border border-[#2f3031]"
                   >
                     <Tag className="w-3 h-3 text-[#4d8bff]" />[{prop}]
                     <button
@@ -602,12 +605,12 @@ export default function CreateCampaignPage() {
                       }
                     }}
                     placeholder="+ tambah variabel"
-                    className="px-2.5 py-1 text-xs bg-[#111214] border border-[#2f3031] rounded-md text-white placeholder-[#6a6b6c] focus:outline-none focus:border-[#4d8bff]"
+                    className="px-2.5 py-2 text-xs bg-[#111214] border border-[#2f3031] rounded-md text-white placeholder-[#6a6b6c] focus:outline-none focus:border-[#4d8bff]"
                   />
                   <button
                     type="button"
                     onClick={() => addProp(newPropInput)}
-                    className="px-2.5 py-1 text-xs bg-(--color-cobalt-edge) cursor-pointer border border-[#2f3031] rounded-md"
+                    className="px-2.5 py-2 text-xs bg-cobalt-edge hover:bg-cobalt-edge/70 hover:text-white/70 cursor-pointer border border-[#2f3031] rounded-md"
                   >
                     Tambah
                   </button>
