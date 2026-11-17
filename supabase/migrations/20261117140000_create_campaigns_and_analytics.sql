@@ -56,7 +56,10 @@ EXECUTE FUNCTION public.set_updated_at();
 
 -- 6. Trigger to automatically initialize campaign_analytics record
 CREATE OR REPLACE FUNCTION public.init_campaign_analytics()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER 
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
     INSERT INTO public.campaign_analytics (campaign_id, download_count)
     VALUES (NEW.id, 0)
@@ -99,7 +102,15 @@ FOR SELECT
 TO anon, authenticated 
 USING (true);
 
--- Policy 4: Public UPDATE analytics (e.g. increment download counter)
+-- Policy 4: Public INSERT analytics
+DROP POLICY IF EXISTS "Public can insert campaign_analytics" ON public.campaign_analytics;
+CREATE POLICY "Public can insert campaign_analytics" 
+ON public.campaign_analytics 
+FOR INSERT 
+TO anon, authenticated 
+WITH CHECK (true);
+
+-- Policy 5: Public UPDATE analytics (e.g. increment download counter)
 DROP POLICY IF EXISTS "Public can increment download count" ON public.campaign_analytics;
 CREATE POLICY "Public can increment download count" 
 ON public.campaign_analytics 
