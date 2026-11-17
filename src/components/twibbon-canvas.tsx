@@ -108,7 +108,7 @@ export default function TwibbonCanvas({
 	}
 
 	return (
-		<div className="relative flex justify-center items-center bg-[#07080a] border border-[#2f3031] rounded-2xl overflow-hidden p-2 shadow-2xl">
+		<div className="relative flex justify-center items-center raycast-card p-3 shadow-2xl">
 			<canvas
 				ref={canvasRef}
 				width={dimensions.width}

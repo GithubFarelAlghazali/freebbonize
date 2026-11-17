@@ -70,8 +70,8 @@ export default function CampaignViewPage() {
 	if (isLoading) {
 		return (
 			<div className="min-h-screen bg-[#040506] flex flex-col justify-center items-center text-white space-y-3">
-				<Loader2 className="w-8 h-8 text-[#ff6363] animate-spin" />
-				<p className="text-sm font-medium text-[#9c9c9d]">Memuat kampanye Twibbon...</p>
+				<Loader2 className="w-8 h-8 text-[#4d8bff] animate-spin" />
+				<p className="text-xs font-mono text-[#9c9c9d]">Memuat kampanye Twibbon...</p>
 			</div>
 		);
 	}
@@ -79,13 +79,13 @@ export default function CampaignViewPage() {
 	if (fetchError) {
 		return (
 			<div className="min-h-screen bg-[#040506] flex flex-col justify-center items-center text-white p-6">
-				<div className="max-w-md w-full bg-[#07080a] border border-[#2f3031] p-8 rounded-2xl text-center space-y-4">
-					<AlertCircle className="w-12 h-12 text-[#ff6363] mx-auto" />
-					<h2 className="text-xl font-bold">Terjadi Kesalahan</h2>
-					<p className="text-sm text-[#9c9c9d]">{fetchError}</p>
+				<div className="max-w-md w-full raycast-card p-8 text-center space-y-4">
+					<AlertCircle className="w-10 h-10 text-[#ff4d4d] mx-auto" />
+					<h2 className="text-lg font-semibold">Terjadi Kesalahan</h2>
+					<p className="text-xs text-[#9c9c9d] leading-relaxed">{fetchError}</p>
 					<Link
 						to="/"
-						className="inline-block px-5 py-2.5 bg-[#e6e6e6] text-[#040506] font-semibold text-sm rounded-xl"
+						className="inline-block raycast-btn-primary"
 					>
 						Kembali ke Beranda
 					</Link>
@@ -100,22 +100,25 @@ export default function CampaignViewPage() {
 
 	return (
 		<main className="min-h-screen bg-[#040506] text-white flex flex-col justify-between">
-			{/* Top Navbar */}
-			<header className="w-full border-b border-[#2f3031] bg-[#07080a]/80 backdrop-blur-md px-6 py-4 flex items-center justify-between sticky top-0 z-30">
+			{/* Floating Glass Navigation Bar per DESIGN.md */}
+			<header className="w-full border-b border-[#363739] bg-[#07080a]/85 backdrop-blur-[48px] px-6 py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-sm">
 				<div className="flex items-center gap-3">
-					<Link to="/" className="text-lg font-bold tracking-tight text-white hover:text-[#ff6363] transition-colors">
-						Freebbonize<span className="text-[#ff6363]">.</span>
+					<Link to="/" className="flex items-center gap-2 group">
+						<div className="w-3.5 h-3.5 bg-[#4d8bff] rotate-45 rounded-[2px] shadow-[0_0_8px_rgba(77,139,255,0.6)]" />
+						<span className="text-sm font-semibold tracking-tight text-white group-hover:text-[#4d8bff] transition-colors">
+							Freebbonize
+						</span>
 					</Link>
-					<span className="text-[#2f3031]">/</span>
-					<span className="text-xs font-mono text-[#9c9c9d] bg-[#111214] px-2.5 py-1 rounded-md border border-[#2f3031] truncate max-w-[150px] sm:max-w-xs">
+					<span className="text-[#363739] font-mono">/</span>
+					<span className="raycast-badge truncate max-w-[150px] sm:max-w-xs">
 						{campaign.slug}
 					</span>
 				</div>
 
-				<div className="flex items-center gap-3">
+				<div className="flex items-center gap-2.5">
 					<button
 						onClick={handleCopyShareUrl}
-						className="px-3.5 py-1.5 bg-[#111214] hover:bg-[#1b1c1e] border border-[#2f3031] text-[#e6e6e6] text-xs font-medium rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+						className="raycast-btn-secondary text-xs flex items-center gap-1.5 py-1.5 px-3"
 					>
 						{isUrlCopied ? (
 							<>
@@ -124,17 +127,17 @@ export default function CampaignViewPage() {
 							</>
 						) : (
 							<>
-								<Share2 className="w-3.5 h-3.5 text-[#ff6363]" />
-								<span>Bagikan Link</span>
+								<Share2 className="w-3.5 h-3.5 text-[#4d8bff]" />
+								<span>Bagikan</span>
 							</>
 						)}
 					</button>
 
 					<Link
 						to="/"
-						className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 bg-[#e6e6e6] hover:bg-white text-[#040506] text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+						className="hidden sm:flex items-center gap-1.5 raycast-btn-primary text-xs py-1.5 px-3"
 					>
-						<PlusCircle className="w-3.5 h-3.5 text-[#ff6363]" />
+						<PlusCircle className="w-3.5 h-3.5 text-[#07080a]" />
 						<span>Buat Twibbon Baru</span>
 					</Link>
 				</div>
@@ -187,9 +190,13 @@ export default function CampaignViewPage() {
 				</div>
 			</div>
 
-			{/* Footer */}
-			<footer className="w-full border-t border-[#2f3031] py-4 text-center text-xs text-[#6a6b6c]">
-				Dibuat dengan Freebbonize &bull; 100% Client-Side Twibbon Generator
+			{/* Footer Meta Strip per DESIGN.md */}
+			<footer className="w-full border-t border-[#2f3031] py-4 text-center text-xs font-mono text-[#6a6b6c] space-x-2">
+				<span>Freebbonize</span>
+				<span>|</span>
+				<span>100% Client-Side Compositing</span>
+				<span>|</span>
+				<span>No Ads &bull; No Login</span>
 			</footer>
 		</main>
 	);

@@ -2,6 +2,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 :root {
+	/* Raycast Midnight Command Center Design Tokens */
 	--color-void-black: #040506;
 	--color-ink: #07080a;
 	--color-obsidian: #111214;
@@ -11,18 +12,115 @@
 	--color-mist: #e6e6e6;
 	--color-iron: #454647;
 	--color-slate: #2f3031;
-	--color-coral-pulse: #ff6363;
+	--color-pure-white: #ffffff;
+	--color-border-subtle: #363739;
+
+	/* Accent & Signals */
+	--color-azure-pulse: #4d8bff;
+	--color-navy-hush: #232c45;
+	--color-electric-sky: #63a1ff;
+	--color-cobalt-edge: #143ca3;
+	--color-info-blue: #56c2ff;
 	--color-success-green: #59d499;
+	--color-error: #ff4d4d;
+	--color-error-hush: #3d1417;
 }
 
 body {
 	font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 	background-color: var(--color-void-black);
-	color: #ffffff;
+	color: var(--color-pure-white);
 	min-height: 100vh;
 	margin: 0;
+	-webkit-font-smoothing: antialiased;
 }
 
+/* Font Monospace */
 .font-mono {
 	font-family: "JetBrains Mono", Menlo, Monaco, Courier, monospace;
+}
+
+/* Raycast Tactile Keyboard Key Card */
+.raycast-card {
+	background-color: var(--color-ink);
+	border: 1px solid var(--color-slate);
+	border-radius: 16px;
+	box-shadow: 
+		inset 0 1px 0 rgba(255, 255, 255, 0.05),
+		0 0 0 1px rgba(255, 255, 255, 0.02),
+		inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* Raycast Recessed Input Well */
+.raycast-input {
+	background-color: var(--color-obsidian);
+	border: 1px solid var(--color-slate);
+	border-radius: 8px;
+	color: var(--color-pure-white);
+	padding: 10px 14px;
+	font-size: 14px;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.raycast-input:focus {
+	outline: none;
+	border-color: var(--color-azure-pulse);
+	box-shadow: 0 0 0 1px var(--color-azure-pulse);
+}
+
+/* Raycast Neutral Filled Action Button (Mist) */
+.raycast-btn-primary {
+	background-color: var(--color-mist);
+	color: var(--color-ink);
+	font-weight: 500;
+	font-size: 14px;
+	border-radius: 8px;
+	padding: 10px 18px;
+	border: none;
+	cursor: pointer;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+	transition: background-color 0.15s ease, transform 0.05s ease;
+}
+
+.raycast-btn-primary:hover:not(:disabled) {
+	background-color: #ffffff;
+}
+
+.raycast-btn-primary:active:not(:disabled) {
+	transform: scale(0.99);
+}
+
+.raycast-btn-primary:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+
+/* Raycast Ghost / Secondary Action Button */
+.raycast-btn-secondary {
+	background-color: var(--color-obsidian);
+	color: var(--color-mist);
+	font-weight: 500;
+	font-size: 14px;
+	border-radius: 8px;
+	padding: 10px 16px;
+	border: 1px solid var(--color-slate);
+	cursor: pointer;
+	transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.raycast-btn-secondary:hover:not(:disabled) {
+	background-color: var(--color-graphite);
+	border-color: var(--color-smoke);
+	color: #ffffff;
+}
+
+/* Raycast Micro-Badge Tag */
+.raycast-badge {
+	background-color: var(--color-graphite);
+	color: var(--color-ash);
+	border: 1px solid var(--color-slate);
+	border-radius: 6px;
+	padding: 2px 8px;
+	font-family: "JetBrains Mono", monospace;
+	font-size: 11px;
 }

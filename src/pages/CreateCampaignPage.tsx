@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
 	UploadCloud,
 	CheckCircle2,
 	AlertCircle,
-	Sparkles,
 	ArrowRight,
 	Image as ImageIcon,
 	Type,
@@ -125,7 +124,6 @@ export default function CreateCampaignPage() {
 	async function handleFileSelected(file: File) {
 		setFileError(null);
 
-		// 1. Validasi berkas: Ukuran (maks 3MB), ekstensi (.png, .jpg, .jpeg, .webp), dan magic bytes
 		const validation = await validateImageFile(file);
 		if (!validation.valid) {
 			setFileError(validation.error || "File tidak memenuhi syarat.");
@@ -138,7 +136,6 @@ export default function CreateCampaignPage() {
 		setDetectedMime(validation.detectedMime || "image/png");
 		setFrameFile(file);
 
-		// 2. Ekstrak dimensi asli & rasio tanpa memaksakan 1:1
 		try {
 			const dims = await extractImageDimensions(file);
 			setFrameDimensions(dims);
@@ -149,7 +146,6 @@ export default function CreateCampaignPage() {
 		}
 	}
 
-	// Dynamic props tag management
 	function addProp(tag: string) {
 		const clean = tag.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
 		if (clean && !captionProps.includes(clean)) {
@@ -162,7 +158,6 @@ export default function CreateCampaignPage() {
 		setCaptionProps(captionProps.filter((p) => p !== tagToRemove));
 	}
 
-	// Submission with server-side validation and Supabase upload
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
 		setSubmitError(null);
@@ -185,7 +180,7 @@ export default function CreateCampaignPage() {
 		setIsSubmitting(true);
 
 		try {
-			// 1. Backend Validation Call (via /api/validate-frame)
+			// Backend Validation Call (via /api/validate-frame)
 			try {
 				const backendCheck = await fetch("/api/validate-frame", {
 					method: "POST",
@@ -203,11 +198,10 @@ export default function CreateCampaignPage() {
 					}
 				}
 			} catch (apiErr: unknown) {
-				// Log network/backend warning if running outside dev server, proceed with client-validated buffer
 				console.warn("Backend validator endpoint check:", apiErr);
 			}
 
-			// 2. Upload frame to Supabase Storage
+			// Upload frame to Supabase Storage
 			const ext = frameFile.name.split(".").pop()?.toLowerCase() || "png";
 			const fileName = `frames/${slug}-${Date.now()}.${ext}`;
 
@@ -222,14 +216,12 @@ export default function CreateCampaignPage() {
 				throw new Error(`Gagal mengunggah gambar ke storage: ${uploadError.message}`);
 			}
 
-			// 3. Get Public URL
 			const { data: urlData } = supabase.storage
 				.from(STORAGE_BUCKET)
 				.getPublicUrl(fileName);
 
 			const publicFrameUrl = urlData.publicUrl;
 
-			// 4. Insert record into PostgreSQL 'campaigns' table (dimensi asli tersimpan)
 			const { error: insertError } = await supabase.from("campaigns").insert({
 				slug: slug.trim().toLowerCase(),
 				title: title.trim(),
@@ -245,7 +237,6 @@ export default function CreateCampaignPage() {
 				throw new Error(`Gagal menyimpan kampanye: ${insertError.message}`);
 			}
 
-			// 5. Redirect to the newly created campaign page
 			navigate(`/${slug.trim().toLowerCase()}`);
 		} catch (err: unknown) {
 			console.error("Submission failed:", err);
@@ -257,24 +248,35 @@ export default function CreateCampaignPage() {
 	}
 
 	return (
-		<main className="min-h-screen bg-[#040506] text-[#e6e6e6] p-4 sm:p-8 flex justify-center items-center">
-			<div className="w-full max-w-4xl bg-[#07080a] border border-[#2f3031] rounded-2xl p-6 sm:p-10 shadow-2xl">
+		<main className="min-h-screen bg-[#040506] text-[#e6e6e6] p-4 sm:p-8 flex flex-col justify-between items-center">
+			{/* Top Glass Navigation Bar */}
+			<nav className="w-full max-w-4xl mb-6 px-4 py-2.5 rounded-xl border border-[#363739] bg-[#07080a]/80 backdrop-blur-md flex items-center justify-between shadow-sm">
+				<div className="flex items-center gap-2.5">
+					{/* Azure Diamond Mark */}
+					<div className="w-4 h-4 bg-[#4d8bff] rotate-45 rounded-[2px] shadow-[0_0_8px_rgba(77,139,255,0.6)]" />
+					<span className="text-sm font-semibold tracking-tight text-white">Freebbonize</span>
+				</div>
+				<span className="text-xs font-mono text-[#9c9c9d]">v1.0.0 &bull; Open Source</span>
+			</nav>
+
+			{/* Main Form Card */}
+			<div className="w-full max-w-4xl raycast-card p-6 sm:p-10 mb-8">
 				{/* Header Section */}
 				<header className="mb-8 border-b border-[#2f3031] pb-6">
-					<div className="flex items-center gap-2 text-[#ff6363] text-sm font-semibold tracking-wider uppercase mb-2">
-						<Sparkles className="w-4 h-4" />
+					<div className="flex items-center gap-2 text-[#4d8bff] text-xs font-semibold tracking-wider uppercase mb-2">
+						<span className="w-1.5 h-1.5 rounded-full bg-[#4d8bff]" />
 						Buat Kampanye Twibbon Baru
 					</div>
-					<h1 className="text-2xl sm:text-4xl font-bold text-white tracking-tight">
+					<h1 className="text-2xl sm:text-4xl font-normal text-white tracking-tight">
 						Luncurkan Twibbon Anda dalam Hitungan Menit
 					</h1>
-					<p className="text-[#9c9c9d] mt-2 text-sm sm:text-base">
+					<p className="text-[#9c9c9d] mt-2 text-sm sm:text-base leading-relaxed">
 						Tanpa login. Mendukung berbagai aspek rasio (persegi, potret 4:5, lanskap 16:9, dll.) tanpa pemotongan paksa.
 					</p>
 				</header>
 
 				{submitError && (
-					<div className="mb-6 p-4 rounded-xl bg-[#452324] border border-[#ff6363]/40 flex items-start gap-3 text-[#ff6363]">
+					<div className="mb-6 p-4 rounded-lg bg-[#3d1417] border border-[#ff4d4d]/40 flex items-start gap-3 text-[#ff4d4d]">
 						<AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
 						<div className="text-sm font-medium">{submitError}</div>
 					</div>
@@ -285,9 +287,9 @@ export default function CreateCampaignPage() {
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 						{/* Title Input */}
 						<div>
-							<label className="flex items-center gap-2 text-sm font-medium text-[#e6e6e6] mb-2">
-								<Type className="w-4 h-4 text-[#ff6363]" />
-								Nama Acara / Kampanye <span className="text-[#ff6363]">*</span>
+							<label className="flex items-center gap-2 text-xs font-medium text-[#9c9c9d] mb-2">
+								<Type className="w-3.5 h-3.5 text-[#4d8bff]" />
+								Nama Acara / Kampanye <span className="text-[#4d8bff]">*</span>
 							</label>
 							<input
 								type="text"
@@ -295,31 +297,31 @@ export default function CreateCampaignPage() {
 								value={title}
 								onChange={(e) => handleTitleChange(e.target.value)}
 								placeholder="contoh: FancyEvent 2026"
-								className="w-full px-4 py-3 bg-[#111214] border border-[#2f3031] rounded-xl text-white placeholder-[#6a6b6c] focus:outline-none focus:border-[#ff6363] transition-colors"
+								className="w-full raycast-input placeholder-[#6a6b6c]"
 							/>
 						</div>
 
 						{/* Slug Input with URL Prefix Pill */}
 						<div>
-							<label className="flex items-center justify-between text-sm font-medium text-[#e6e6e6] mb-2">
-								<span className="flex items-center gap-2">
-									<Layers className="w-4 h-4 text-[#ff6363]" />
-									Kustom URL (Slug) <span className="text-[#ff6363]">*</span>
+							<label className="flex items-center justify-between text-xs font-medium text-[#9c9c9d] mb-2">
+								<span className="flex items-center gap-1.5">
+									<Layers className="w-3.5 h-3.5 text-[#4d8bff]" />
+									Kustom URL (Slug) <span className="text-[#4d8bff]">*</span>
 								</span>
-								{slugStatus === "checking" && <span className="text-xs text-[#9c9c9d]">Memeriksa...</span>}
+								{slugStatus === "checking" && <span className="text-[11px] text-[#9c9c9d] font-mono">Memeriksa...</span>}
 								{slugStatus === "available" && (
-									<span className="text-xs text-[#59d499] flex items-center gap-1">
-										<CheckCircle2 className="w-3.5 h-3.5" /> Tersedia
+									<span className="text-[11px] text-[#59d499] flex items-center gap-1 font-mono">
+										<CheckCircle2 className="w-3 h-3" /> Tersedia
 									</span>
 								)}
 								{slugStatus === "taken" && (
-									<span className="text-xs text-[#ff6363] flex items-center gap-1">
-										<AlertCircle className="w-3.5 h-3.5" /> Terpakai
+									<span className="text-[11px] text-[#ff4d4d] flex items-center gap-1 font-mono">
+										<AlertCircle className="w-3 h-3" /> Terpakai
 									</span>
 								)}
 							</label>
-							<div className="flex items-center bg-[#111214] border border-[#2f3031] rounded-xl overflow-hidden focus-within:border-[#ff6363] transition-colors">
-								<span className="px-3 py-3 bg-[#1b1c1e] text-[#6a6b6c] text-xs sm:text-sm font-mono border-r border-[#2f3031] select-none">
+							<div className="flex items-center bg-[#111214] border border-[#2f3031] rounded-lg overflow-hidden focus-within:border-[#4d8bff] focus-within:ring-1 focus-within:ring-[#4d8bff] transition-all">
+								<span className="px-3 py-2 bg-[#1b1c1e] text-[#6a6b6c] text-xs font-mono border-r border-[#2f3031] select-none">
 									/
 								</span>
 								<input
@@ -328,13 +330,13 @@ export default function CreateCampaignPage() {
 									value={slug}
 									onChange={(e) => handleSlugInput(e.target.value)}
 									placeholder="nama-acara-kamu"
-									className="w-full px-3 py-3 bg-transparent text-white font-mono text-sm placeholder-[#6a6b6c] focus:outline-none"
+									className="w-full px-3 py-2 bg-transparent text-white font-mono text-sm placeholder-[#6a6b6c] focus:outline-none"
 								/>
 							</div>
 							{slugMessage && (
 								<p
 									className={`text-xs mt-1.5 font-medium ${
-										slugStatus === "available" ? "text-[#59d499]" : "text-[#ff6363]"
+										slugStatus === "available" ? "text-[#59d499]" : "text-[#ff4d4d]"
 									}`}
 								>
 									{slugMessage}
@@ -345,8 +347,8 @@ export default function CreateCampaignPage() {
 
 					{/* Description */}
 					<div>
-						<label className="flex items-center gap-2 text-sm font-medium text-[#e6e6e6] mb-2">
-							<FileText className="w-4 h-4 text-[#9c9c9d]" />
+						<label className="flex items-center gap-2 text-xs font-medium text-[#9c9c9d] mb-2">
+							<FileText className="w-3.5 h-3.5 text-[#6a6b6c]" />
 							Deskripsi Acara (Opsional)
 						</label>
 						<textarea
@@ -354,23 +356,23 @@ export default function CreateCampaignPage() {
 							value={description}
 							onChange={(e) => setDescription(e.target.value)}
 							placeholder="Tuliskan keterangan singkat mengenai acara atau kampanye ini..."
-							className="w-full px-4 py-3 bg-[#111214] border border-[#2f3031] rounded-xl text-white placeholder-[#6a6b6c] focus:outline-none focus:border-[#ff6363] transition-colors"
+							className="w-full raycast-input placeholder-[#6a6b6c]"
 						/>
 					</div>
 
 					{/* Frame Upload Dropzone with Flexible Aspect Ratio Preview */}
 					<div>
-						<label className="flex items-center justify-between text-sm font-medium text-[#e6e6e6] mb-2">
-							<span className="flex items-center gap-2">
-								<ImageIcon className="w-4 h-4 text-[#ff6363]" />
-								Unggah Bingkai Twibbon (.PNG, .JPG, .WEBP) <span className="text-[#ff6363]">*</span>
+						<label className="flex items-center justify-between text-xs font-medium text-[#9c9c9d] mb-2">
+							<span className="flex items-center gap-1.5">
+								<ImageIcon className="w-3.5 h-3.5 text-[#4d8bff]" />
+								Unggah Bingkai Twibbon (.PNG, .JPG, .WEBP) <span className="text-[#4d8bff]">*</span>
 							</span>
-							<span className="text-xs text-[#9c9c9d]">Maksimal 3MB &bull; Rasio Bebas (Tidak Harus 1:1)</span>
+							<span className="text-xs text-[#6a6b6c] font-mono">Maksimal 3MB &bull; Rasio Bebas</span>
 						</label>
 
 						<div
 							onClick={() => fileInputRef.current?.click()}
-							className="group relative border-2 border-dashed border-[#454647] hover:border-[#ff6363] rounded-2xl p-6 sm:p-8 bg-[#111214]/60 hover:bg-[#111214] transition-all cursor-pointer flex flex-col items-center justify-center text-center"
+							className="group relative border border-dashed border-[#454647] hover:border-[#4d8bff] rounded-xl p-6 sm:p-8 bg-[#111214]/60 hover:bg-[#111214] transition-all cursor-pointer flex flex-col items-center justify-center text-center"
 						>
 							<input
 								ref={fileInputRef}
@@ -383,7 +385,7 @@ export default function CreateCampaignPage() {
 							{framePreview && frameDimensions ? (
 								<div className="flex flex-col sm:flex-row items-center gap-6">
 									<div
-										className="max-w-[200px] max-h-[160px] rounded-xl overflow-hidden bg-black/50 border border-[#2f3031] flex items-center justify-center p-2 shadow-inner"
+										className="max-w-[180px] max-h-[150px] rounded-lg overflow-hidden bg-black/50 border border-[#2f3031] flex items-center justify-center p-2 shadow-inner"
 										style={{ aspectRatio: `${frameDimensions.width} / ${frameDimensions.height}` }}
 									>
 										<img
@@ -393,32 +395,32 @@ export default function CreateCampaignPage() {
 										/>
 									</div>
 									<div className="text-left space-y-2">
-										<div className="text-sm font-semibold text-white truncate max-w-xs">
+										<div className="text-sm font-medium text-white truncate max-w-xs">
 											{frameFile?.name}
 										</div>
 										<div className="flex flex-wrap items-center gap-2">
-											<span className="px-2.5 py-1 bg-[#1b1c1e] text-[#9c9c9d] text-xs font-mono rounded-lg border border-[#2f3031]">
+											<span className="raycast-badge">
 												{frameDimensions.width} × {frameDimensions.height} px
 											</span>
-											<span className="px-2.5 py-1 bg-[#452324] text-[#ff6363] text-xs font-mono font-medium rounded-lg border border-[#ff6363]/30">
+											<span className="raycast-badge text-[#4d8bff]">
 												Rasio {frameDimensions.aspectRatio}:1
 											</span>
-											<span className="px-2.5 py-1 bg-[#111214] text-[#59d499] text-xs font-mono rounded-lg border border-[#2f3031]">
+											<span className="raycast-badge text-[#59d499]">
 												{detectedMime}
 											</span>
 										</div>
-										<p className="text-xs text-[#9c9c9d]">
+										<p className="text-xs text-[#6a6b6c]">
 											Klik di sini untuk mengganti berkas bingkai.
 										</p>
 									</div>
 								</div>
 							) : (
 								<div className="space-y-3">
-									<div className="w-12 h-12 rounded-xl bg-[#1b1c1e] border border-[#2f3031] flex items-center justify-center mx-auto text-[#ff6363] group-hover:scale-110 transition-transform">
-										<UploadCloud className="w-6 h-6" />
+									<div className="w-10 h-10 rounded-lg bg-[#1b1c1e] border border-[#2f3031] flex items-center justify-center mx-auto text-[#4d8bff] group-hover:scale-105 transition-transform">
+										<UploadCloud className="w-5 h-5" />
 									</div>
 									<div>
-										<p className="text-sm font-semibold text-white">
+										<p className="text-sm font-medium text-white">
 											Klik untuk unggah atau seret bingkai twibbon ke sini
 										</p>
 										<p className="text-xs text-[#6a6b6c] mt-1">
@@ -430,7 +432,7 @@ export default function CreateCampaignPage() {
 						</div>
 
 						{fileError && (
-							<div className="mt-2 p-3 rounded-xl bg-[#452324] border border-[#ff6363]/40 flex items-center gap-2 text-[#ff6363] text-xs font-medium">
+							<div className="mt-2 p-3 rounded-lg bg-[#3d1417] border border-[#ff4d4d]/40 flex items-center gap-2 text-[#ff4d4d] text-xs font-medium">
 								<AlertCircle className="w-4 h-4 shrink-0" />
 								{fileError}
 							</div>
@@ -438,40 +440,40 @@ export default function CreateCampaignPage() {
 					</div>
 
 					{/* Caption Template & Variables */}
-					<div className="p-5 rounded-2xl bg-[#0e1012] border border-[#2f3031] space-y-4">
-						<label className="block text-sm font-medium text-[#e6e6e6]">
+					<div className="p-5 rounded-xl bg-[#0b0d0f] border border-[#2f3031] space-y-4">
+						<label className="block text-xs font-medium text-[#9c9c9d] uppercase tracking-wider">
 							Pengaturan Caption Media Sosial
 						</label>
 
 						<div>
-							<span className="text-xs text-[#9c9c9d] block mb-2">
-								Template Caption (Gunakan format tanda kurung siku seperti <code className="text-[#ff6363]">[nama]</code> untuk kolom yang dapat diisi peserta):
+							<span className="text-xs text-[#6a6b6c] block mb-2">
+								Template Caption (Gunakan format tanda kurung siku seperti <code className="text-[#4d8bff] font-mono">[nama]</code> untuk kolom yang dapat diisi peserta):
 							</span>
 							<textarea
 								rows={2}
 								value={captionTemplate}
 								onChange={(e) => setCaptionTemplate(e.target.value)}
-								className="w-full px-4 py-3 bg-[#111214] border border-[#2f3031] rounded-xl text-white text-sm placeholder-[#6a6b6c] focus:outline-none focus:border-[#ff6363] transition-colors"
+								className="w-full raycast-input placeholder-[#6a6b6c] text-sm"
 							/>
 						</div>
 
 						{/* Tag Variables */}
 						<div>
-							<span className="text-xs text-[#9c9c9d] block mb-2">
+							<span className="text-xs text-[#6a6b6c] block mb-2">
 								Variabel Input Form Peserta:
 							</span>
 							<div className="flex flex-wrap items-center gap-2">
 								{captionProps.map((prop) => (
 									<span
 										key={prop}
-										className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#1b1c1e] text-[#e6e6e6] text-xs font-mono rounded-lg border border-[#2f3031]"
+										className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#1b1c1e] text-[#e6e6e6] text-xs font-mono rounded-md border border-[#2f3031]"
 									>
-										<Tag className="w-3 h-3 text-[#ff6363]" />
+										<Tag className="w-3 h-3 text-[#4d8bff]" />
 										[{prop}]
 										<button
 											type="button"
 											onClick={() => removeProp(prop)}
-											className="hover:text-[#ff6363] text-[#6a6b6c] ml-1 text-sm font-bold leading-none cursor-pointer"
+											className="hover:text-[#ff4d4d] text-[#6a6b6c] ml-1 text-sm font-bold leading-none cursor-pointer"
 										>
 											×
 										</button>
@@ -489,13 +491,13 @@ export default function CreateCampaignPage() {
 												addProp(newPropInput);
 											}
 										}}
-										placeholder="+ tambah variabel (cth: instansi)"
-										className="px-3 py-1 text-xs bg-[#111214] border border-[#2f3031] rounded-lg text-white placeholder-[#6a6b6c] focus:outline-none focus:border-[#ff6363]"
+										placeholder="+ tambah variabel"
+										className="px-2.5 py-1 text-xs bg-[#111214] border border-[#2f3031] rounded-md text-white placeholder-[#6a6b6c] focus:outline-none focus:border-[#4d8bff]"
 									/>
 									<button
 										type="button"
 										onClick={() => addProp(newPropInput)}
-										className="px-3 py-1 text-xs bg-[#1b1c1e] hover:bg-[#2f3031] text-[#e6e6e6] rounded-lg border border-[#2f3031] cursor-pointer"
+										className="px-2.5 py-1 text-xs raycast-btn-secondary cursor-pointer"
 									>
 										Tambah
 									</button>
@@ -505,24 +507,37 @@ export default function CreateCampaignPage() {
 					</div>
 
 					{/* Action Submit */}
-					<div className="pt-4 flex justify-end">
+					<div className="pt-2 flex justify-end">
 						<button
 							type="submit"
 							disabled={isSubmitting || slugStatus === "taken" || slugStatus === "checking"}
-							className="w-full sm:w-auto px-8 py-4 bg-[#e6e6e6] hover:bg-white text-[#040506] font-semibold rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+							className="raycast-btn-primary flex items-center justify-center gap-2 text-sm font-medium w-full sm:w-auto"
 						>
 							{isSubmitting ? (
 								<>Memverifikasi & Mengunggah...</>
 							) : (
 								<>
 									Publikasikan & Buka Twibbon
-									<ArrowRight className="w-5 h-5 text-[#ff6363]" />
+									<ArrowRight className="w-4 h-4" />
 								</>
 							)}
 						</button>
 					</div>
 				</form>
 			</div>
+
+			{/* Footer Meta Strip per DESIGN.md */}
+			<footer className="text-center text-xs font-mono text-[#6a6b6c] space-x-2 pb-4">
+				<span>v1.0.0</span>
+				<span>|</span>
+				<span>100% Client-Side Engine</span>
+				<span>|</span>
+				<span>Supabase Storage</span>
+				<span>|</span>
+				<Link to="/" className="text-[#9c9c9d] hover:text-white transition-colors">
+					Freebbonize
+				</Link>
+			</footer>
 		</main>
 	);
 }
