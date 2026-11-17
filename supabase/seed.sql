@@ -1,6 +1,10 @@
 -- Seed data: supabase/seed.sql
--- Description: Initial sample records for campaigns
+-- Description: Reset and insert sample records for campaigns (Fresh Seed)
 
+-- 1. Hapus seluruh data lama di tabel kampanye & analitik (Cascade ke relasi foreign key)
+TRUNCATE TABLE public.campaign_analytics, public.campaigns RESTART IDENTITY CASCADE;
+
+-- 2. Masukkan data seeder baru
 INSERT INTO public.campaigns (
     slug, 
     title, 

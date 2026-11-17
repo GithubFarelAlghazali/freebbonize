@@ -19,11 +19,11 @@ if (!fs.existsSync(seedPath)) {
 	process.exit(1);
 }
 
-console.log("🌱 Menjalankan database seeder...");
+console.log("🌱 Menjalankan fresh database seeder (menghapus semua data lama & mengisi ulang)...");
 try {
 	execSync(`psql "${dbUrl}" -f "${seedPath}"`, { stdio: "inherit" });
-	console.log("✅ Seeder berhasil dieksekusi!");
+	console.log("✅ Database berhasil di-reset dan data seeder baru berhasil diisi!");
 } catch (err) {
-	console.error("❌ Gagal mengeksekusi seeder:", err.message);
+	console.error("❌ Gagal mengeksekusi seeder:", err instanceof Error ? err.message : err);
 	process.exit(1);
 }
