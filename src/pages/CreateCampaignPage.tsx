@@ -336,8 +336,8 @@ export default function CreateCampaignPage() {
         <div className="flex items-center gap-2.5">
           {/* Azure Diamond Mark */}
           <img
-            src="/Main-Logo.png"
-            className="w-4 h-4 bg-[#4d8bff] rotate-45 rounded-[2px] shadow-[0_0_8px_rgba(77,139,255,0.6)]"
+            src="/Freebbonize - Main Logo.webp"
+            className="w-4 h-4 rotate-45 rounded-[2px]"
           />
           <span className="text-sm font-semibold tracking-tight text-white">
             Freebbonize
