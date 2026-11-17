@@ -108,8 +108,17 @@ serve(async (req) => {
 			Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
 		);
 
-		// 5. Upload ke Supabase Storage
-		const fileName = `frames/${slug}-${Date.now()}.${fileExt}`;
+		// 5. Upload ke Supabase Storage dengan format: <<nama kegiatan>>-<<unix timestamp>>-<<random uuid>>.<<extensi>>
+		const activityRaw = (formData.get("title") as string)?.trim() || slug;
+		const activityName = activityRaw
+			.toLowerCase()
+			.replace(/\s+/g, "-")
+			.replace(/[^a-z0-9-]/g, "")
+			.replace(/-+/g, "-")
+			.replace(/^-|-$/g, "");
+		const unixTimestamp = Math.floor(Date.now() / 1000);
+		const randomUuid = crypto.randomUUID();
+		const fileName = `frames/${activityName}-${unixTimestamp}-${randomUuid}.${fileExt}`;
 		const bucketName = Deno.env.get("VITE_SUPABASE_STORAGE_BUCKET") || "freebbonize-files";
 
 		const { error: uploadError } = await supabaseAdmin.storage

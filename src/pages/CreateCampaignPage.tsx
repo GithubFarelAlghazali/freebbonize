@@ -263,9 +263,24 @@ export default function CreateCampaignPage() {
         console.warn("Backend validator endpoint check:", apiErr);
       }
 
-      // Upload frame to Supabase Storage
+      // Upload frame to Supabase Storage with format: <<nama kegiatan>>-<<unix timestamp>>-<<random uuid>>.<<extensi>>
+      const activityName = (title.trim() || slug.trim())
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+      const unixTimestamp = Math.floor(Date.now() / 1000);
+      const randomUuid =
+        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+              const r = (Math.random() * 16) | 0;
+              const v = c === "x" ? r : (r & 0x3) | 0x8;
+              return v.toString(16);
+            });
       const ext = frameFile.name.split(".").pop()?.toLowerCase() || "png";
-      const fileName = `frames/${slug}-${Date.now()}.${ext}`;
+      const fileName = `frames/${activityName}-${unixTimestamp}-${randomUuid}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from(STORAGE_BUCKET)
