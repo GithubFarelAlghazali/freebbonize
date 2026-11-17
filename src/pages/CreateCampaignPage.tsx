@@ -61,7 +61,38 @@ export default function CreateCampaignPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Drag & Drop handlers for frame upload
+  function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(true);
+  }
+
+  function handleDragEnter(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(true);
+  }
+
+  function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    // Hanya reset jika keluar dari elemen dropzone (bukan ke child element)
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setIsDraggingOver(false);
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFileSelected(file);
+  }
 
   // Slug normalization
   function normalizeSlug(val: string): string {
@@ -426,7 +457,15 @@ export default function CreateCampaignPage() {
 
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="group relative border border-dashed border-[#454647] hover:border-[#4d8bff] rounded-xl p-6 sm:p-8 bg-[#111214]/60 hover:bg-[#111214] transition-all cursor-pointer flex flex-col items-center justify-center text-center"
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`group relative border border-dashed rounded-xl p-6 sm:p-8 transition-all cursor-pointer flex flex-col items-center justify-center text-center ${
+                isDraggingOver
+                  ? "border-[#4d8bff] bg-[#4d8bff]/10 ring-2 ring-[#4d8bff]/40 scale-[1.01]"
+                  : "border-[#454647] bg-[#111214]/60 hover:border-[#4d8bff] hover:bg-[#111214]"
+              }`}
             >
               <input
                 ref={fileInputRef}
@@ -474,16 +513,25 @@ export default function CreateCampaignPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#1b1c1e] border border-[#2f3031] flex items-center justify-center mx-auto text-[#4d8bff] group-hover:scale-105 transition-transform">
+                  <div
+                    className={`w-10 h-10 rounded-lg border flex items-center justify-center mx-auto transition-all ${
+                      isDraggingOver
+                        ? "bg-[#4d8bff]/20 border-[#4d8bff] text-[#4d8bff] scale-110"
+                        : "bg-[#1b1c1e] border-[#2f3031] text-[#4d8bff] group-hover:scale-105"
+                    }`}
+                  >
                     <UploadCloud className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-white">
-                      Klik untuk unggah atau seret bingkai twibbon ke sini
+                      {isDraggingOver
+                        ? "Lepaskan file di sini…"
+                        : "Klik atau seret bingkai twibbon ke sini"}
                     </p>
                     <p className="text-xs text-[#6a6b6c] mt-1">
-                      MIME type diverifikasi otomatis. Mendukung foto format
-                      persegi, 4:5, 16:9, dan rasio lainnya.
+                      {isDraggingOver
+                        ? "File akan langsung divalidasi dan diunggah."
+                        : "MIME type diverifikasi otomatis. Mendukung foto format persegi, 4:5, 16:9, dan rasio lainnya."}
                     </p>
                   </div>
                 </div>
