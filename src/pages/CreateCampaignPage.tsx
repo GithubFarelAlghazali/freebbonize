@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   UploadCloud,
@@ -37,10 +37,11 @@ export default function CreateCampaignPage() {
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [captionTemplate, setCaptionTemplate] = useState(
-    "Halo! Saya [nama] siap berpartisipasi dalam [acara]! Ikutan juga yuk!"
+    "Halo! Saya [NAMA] siap berpartisipasi dalam [ACARA]! Ikutan juga yuk!"
   );
-  const [captionProps, setCaptionProps] = useState<string[]>(["nama", "acara"]);
+  const [captionProps, setCaptionProps] = useState<string[]>(["NAMA", "ACARA"]);
   const [newPropInput, setNewPropInput] = useState("");
+  const [propInputError, setPropInputError] = useState<string | null>(null);
 
   // File & Frame states
   const [frameFile, setFrameFile] = useState<File | null>(null);
@@ -205,15 +206,87 @@ export default function CreateCampaignPage() {
     }
   }
 
-  function addProp(tag: string) {
-    const clean = tag
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9_]/g, "");
-    if (clean && !captionProps.includes(clean)) {
-      setCaptionProps([...captionProps, clean]);
-      setNewPropInput("");
+  // Caption & props synchronization validator (Uppercase Only)
+  function validateCaptionVariables(template: string, props: string[]): string[] {
+    const errors: string[] = [];
+    const matches = [...template.matchAll(/\[([^\]]+)\]/g)];
+    const rawTokens = matches.map((m) => m[1].trim());
+
+    // 1. Cek adanya huruf kecil pada template (wajib huruf kapital seluruhnya)
+    rawTokens.forEach((token) => {
+      if (/[a-z]/.test(token)) {
+        errors.push(
+          `Variabel "[${token}]" pada template caption harus menggunakan huruf kapital seluruhnya (gunakan [${token.toUpperCase()}]).`
+        );
+      }
+    });
+
+    // 2. Cek token di template yang belum terdaftar di props
+    rawTokens.forEach((token) => {
+      const upperToken = token.toUpperCase();
+      if (!props.includes(upperToken)) {
+        errors.push(
+          `Variabel "[${upperToken}]" digunakan di template caption namun belum didaftarkan pada Variabel Input Form Peserta.`
+        );
+      }
+    });
+
+    // 3. Cek variabel di props yang tidak dipakai di template
+    props.forEach((prop) => {
+      if (!rawTokens.includes(prop)) {
+        errors.push(
+          `Variabel "[${prop}]" terdaftar pada form peserta namun tidak digunakan di dalam Template Caption.`
+        );
+      }
+    });
+
+    return Array.from(new Set(errors));
+  }
+
+  // Reaktif sinkronisasi caption template dan props (derived state via useMemo)
+  const captionSyncErrors = useMemo(
+    () => validateCaptionVariables(captionTemplate, captionProps),
+    [captionTemplate, captionProps]
+  );
+
+  function addProp(rawTag: string) {
+    const tag = rawTag.trim();
+    if (!tag) return;
+
+    if (/\s/.test(tag)) {
+      setPropInputError(
+        "Nama variabel tidak boleh mengandung spasi (gunakan underscore, contoh: NAMA_LENGKAP)."
+      );
+      return;
     }
+
+    if (/[a-z]/.test(tag)) {
+      setPropInputError(
+        "Nama variabel wajib menggunakan huruf kapital seluruhnya (contoh: NAMA, ACARA, NAMA_LENGKAP)."
+      );
+      return;
+    }
+
+    if (/[^A-Z0-9_]/.test(tag)) {
+      setPropInputError(
+        "Nama variabel hanya boleh berisi huruf kapital (A-Z), angka (0-9), dan garis bawah (_)."
+      );
+      return;
+    }
+
+    if (!/^[A-Z]/.test(tag)) {
+      setPropInputError("Nama variabel harus diawali dengan huruf kapital (A-Z).");
+      return;
+    }
+
+    if (captionProps.includes(tag)) {
+      setPropInputError(`Variabel "[${tag}]" sudah terdaftar sebelumnya.`);
+      return;
+    }
+
+    setCaptionProps([...captionProps, tag]);
+    setNewPropInput("");
+    setPropInputError(null);
   }
 
   function removeProp(tagToRemove: string) {
@@ -236,6 +309,20 @@ export default function CreateCampaignPage() {
 
     if (!frameFile || !frameDimensions) {
       setSubmitError("Silakan unggah gambar bingkai Twibbon.");
+      return;
+    }
+
+    if (captionSyncErrors.length > 0) {
+      setSubmitError(
+        "Terdapat ketidaksesuaian antara template caption dan variabel form peserta. Silakan periksa pesan kesalahan pada bagian Pengaturan Caption."
+      );
+      return;
+    }
+
+    if (propInputError) {
+      setSubmitError(
+        "Silakan perbaiki kesalahan pada input variabel peserta terlebih dahulu."
+      );
       return;
     }
 
@@ -334,7 +421,6 @@ export default function CreateCampaignPage() {
       {/* Top Glass Navigation Bar */}
       <nav className="w-full max-w-4xl mb-6 px-4 py-2.5 rounded-xl border border-[#363739] bg-[#07080a]/80 backdrop-blur-md flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-2.5">
-          {/* Azure Diamond Mark */}
           <img
             src="/Freebbonize - Main Logo.webp"
             className="w-4 h-4 rotate-45 rounded-[2px]"
@@ -572,8 +658,8 @@ export default function CreateCampaignPage() {
 
             <div>
               <span className="text-xs text-[#6a6b6c] block mb-2">
-                Template Caption (Gunakan format tanda kurung siku seperti{" "}
-                <code className="text-[#4d8bff] font-mono">[nama]</code> untuk
+                Template Caption (Gunakan format tanda kurung siku dan huruf kapital seperti{" "}
+                <code className="text-[#4d8bff] font-mono">[NAMA]</code> untuk
                 kolom yang dapat diisi peserta):
               </span>
               <div className="flex items-center bg-[#111214] border border-[#2f3031] rounded-lg overflow-hidden focus-within:border-[#4d8bff] focus-within:ring-1 focus-within:ring-[#4d8bff] transition-all">
@@ -586,10 +672,25 @@ export default function CreateCampaignPage() {
               </div>
             </div>
 
+            {/* Panel Kesalahan Sinkronisasi Template & Variabel */}
+            {captionSyncErrors.length > 0 && (
+              <div className="p-3 rounded-lg bg-[#3d1417] border border-[#ff4d4d]/40 space-y-1.5 text-xs text-[#ff4d4d]">
+                <div className="flex items-center gap-2 font-semibold">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-[#ff4d4d]" />
+                  <span>Ketidaksesuaian Variabel Caption & Form:</span>
+                </div>
+                <ul className="list-disc list-inside space-y-1 pl-1 text-[11px] leading-relaxed">
+                  {captionSyncErrors.map((err, idx) => (
+                    <li key={idx}>{err}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* Tag Variables */}
             <div>
               <span className="text-xs text-[#6a6b6c] block mb-2">
-                Variabel Input Form Peserta:
+                Variabel Input Form Peserta (Wajib Huruf Kapital, tanpa spasi):
               </span>
               <div className="flex flex-wrap items-center gap-2">
                 {captionProps.map((prop) => (
@@ -612,25 +713,35 @@ export default function CreateCampaignPage() {
                   <input
                     type="text"
                     value={newPropInput}
-                    onChange={(e) => setNewPropInput(e.target.value)}
+                    onChange={(e) => {
+                      setNewPropInput(e.target.value);
+                      if (propInputError) setPropInputError(null);
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
                         addProp(newPropInput);
                       }
                     }}
-                    placeholder="+ tambah variabel"
-                    className="px-2.5 py-2 text-xs bg-[#111214] border border-[#2f3031] rounded-md text-white placeholder-[#6a6b6c] focus:outline-none focus:border-[#4d8bff]"
+                    placeholder="+ TAMBAH VARIABEL"
+                    className="px-2.5 py-2 text-xs bg-[#111214] border border-[#2f3031] rounded-md text-white font-mono placeholder-[#6a6b6c] focus:outline-none focus:border-[#4d8bff]"
                   />
                   <button
                     type="button"
                     onClick={() => addProp(newPropInput)}
-                    className="px-2.5 py-2 text-xs bg-cobalt-edge hover:bg-cobalt-edge/70 hover:text-white/70 cursor-pointer border border-[#2f3031] rounded-md"
+                    className="px-2.5 py-2 text-xs bg-cobalt-edge hover:bg-cobalt-edge/70 hover:text-white/70 cursor-pointer border border-[#2f3031] rounded-md font-mono"
                   >
                     Tambah
                   </button>
                 </div>
               </div>
+
+              {propInputError && (
+                <div className="flex items-center gap-1.5 text-[#ff4d4d] text-xs mt-2 font-medium">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{propInputError}</span>
+                </div>
+              )}
             </div>
           </div>
 
