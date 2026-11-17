@@ -1,0 +1,6 @@
+# robots.txt for Freebbonize (https://freebbonize.my.id)
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://freebbonize.my.id/sitemap.xml
