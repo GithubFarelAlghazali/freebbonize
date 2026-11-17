@@ -25,14 +25,20 @@
 
 Freebbonize mengusung sistem desain **Raycast Midnight Command Center** bernuansa gelap elegan (*Void Black*, *Ink*, *Obsidian*, dan aksen *Azure Pulse*).
 
-```
-[ Step 1: Landing ]          [ Step 2: Adjust ]           [ Step 3: Ready ]
-  Unggah Foto Peserta   ───►  Manipulasi Kanvas 2D   ───►   Salin Caption Dinamis
-  (Drag & Drop / Klik)        (Geser, Skala, Putar)         & Unduh PNG HD
-```
+### Halaman Pembuatan Kampanye (`/`)
+Form instan tanpa autentikasi untuk meluncurkan kampanye baru dengan *slug* kustom, upload bingkai rasio bebas, preview interaktif, dan generator template caption.
 
-- **Halaman Pembuatan Kampanye (`/`)**: Form instan tanpa autentikasi untuk meluncurkan kampanye baru dengan *slug* kustom, upload bingkai rasio bebas, preview interaktif, dan generator template caption.
-- **Halaman Kampanye Dinamis (`/:slug`)**: Halaman peserta yang bersih untuk mengunggah foto, menyesuaikan posisi gambar di bawah bingkai twibbon secara *real-time*, dan mengunduh hasil akhir dalam resolusi tinggi.
+| Preview Tampilan | Deskripsi Alur |
+|---|---|
+| <img src="docs/screenshots/create-campaign.png" alt="Halaman Pembuatan Kampanye" width="100%" /> | **Halaman Pembuatan Kampanye (`/`)**<br><br>Penyelenggara acara dapat menentukan URL kustom slug, mengunggah bingkai twibbon berasio bebas (drag & drop), melihat preview dimensi otomatis, dan menyusun template kalimat caption media sosial dengan tag variabel dinamis seperti `[nama]` dan `[instansi]`. |
+
+### Halaman Kampanye Dinamis (`/:slug`)
+Halaman peserta yang bersih untuk mengunggah foto, menyesuaikan posisi gambar di bawah bingkai twibbon secara *real-time*, dan mengunduh hasil akhir dalam resolusi tinggi.
+
+| Step 1: Landing (Unggah Foto) | Step 2: Adjust (Atur Kanvas) | Step 3: Ready (Unduh & Caption) |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/campaign-landing.png" alt="Step 1: Landing Page" width="100%" /> | <img src="docs/screenshots/campaign-adjust.png" alt="Step 2: Adjust Canvas" width="100%" /> | <img src="docs/screenshots/campaign-ready.png" alt="Step 3: Ready & Download" width="100%" /> |
+| **1. Unggah Foto Peserta**<br>Peserta membuka tautan kampanye dan memilih atau menyeret (*drag & drop*) foto profil yang akan dipasang. | **2. Penyesuaian Kanvas 2D**<br>Interaksi geser/drag bebas foto, kontrol skala perbesaran ($10\% - 250\%$), dan slider rotasi ($-180^\circ$ s.d. $180^\circ$). | **3. Salin Caption & Unduh**<br>Pengisian variabel form caption dinamis, salin teks ke clipboard dalam 1 klik, dan ekspor instan gambar PNG resolusi penuh. |
 
 ---
 
@@ -113,36 +119,20 @@ flowchart TD
 
 ## 🗄️ 5. Rancangan Database
 
-Database PostgreSQL dirancang dengan dua tabel inti yang saling berelasi:
+Database PostgreSQL dirancang dengan dua tabel inti (`campaigns` dan `campaign_analytics`) yang saling berelasi:
 
-```mermaid
-erDiagram
-    CAMPAIGNS ||--|| CAMPAIGN_ANALYTICS : "has one (1:1)"
+<div align="center">
+  <img src="docs/database-schema.png" alt="Rancangan Database PostgreSQL Freebbonize" width="100%" />
+</div>
 
-    CAMPAIGNS {
-        uuid id PK
-        varchar slug UK "URL unik kampanye"
-        varchar title "Nama acara / kegiatan"
-        text description "Deskripsi acara"
-        text frame_url "URL CDN Supabase Storage"
-        int frame_width "Lebar alami bingkai (px)"
-        int frame_height "Tinggi alami bingkai (px)"
-        numeric frame_aspect_ratio "Generated Always (W / H)"
-        text caption_template "Template teks media sosial"
-        jsonb caption_props "Daftar variabel token"
-        timestamptz created_at
-        timestamptz updated_at
-    }
+<br />
 
-    CAMPAIGN_ANALYTICS {
-        uuid id PK
-        uuid campaign_id FK "Relasi ON DELETE CASCADE"
-        int download_count "Jumlah unduhan"
-        timestamptz last_download_at
-    }
-```
+| Tabel | Deskripsi & Relasi |
+|---|---|
+| **`public.campaigns`** | Menyimpan metadata acara, slug unik, URL frame di Supabase Storage, dimensi asli frame ($W \times H$), rasio aspek (kolom *GENERATED ALWAYS*), template caption, dan array JSONB token variabel. |
+| **`public.campaign_analytics`** | Menyimpan metrik unduhan (`download_count` dan `last_download_at`) dengan relasi *foreign key* `campaign_id` ke tabel `campaigns` berstatus **`ON DELETE CASCADE`**. |
 
-> **Catatan:** Triger PostgreSQL `init_campaign_analytics` secara otomatis menginisialisasi baris analitik setiap kali kampanye baru berhasil dibuat.
+> **Catatan Teknis:** Trigger PostgreSQL `init_campaign_analytics` (*SECURITY DEFINER*) secara otomatis menginisialisasi baris analitik setiap kali kampanye baru berhasil dimasukkan. Kebijakan Row-Level Security (RLS) diaktifkan untuk memastikan akses baca dan unggah anonim tetap aman.
 
 ---
 
@@ -217,6 +207,7 @@ Buka browser pada alamat `http://localhost:5173`.
 
 Proyek ini dikembangkan dan dipelihara secara terbuka:
 - **Lead Developer**: [Farel Alghazali](https://github.com/GithubFarelAlghazali)
+- **Contributor**: [christianxavierVibecode](https://github.com/christianxavierVibecode)
 
 Kontribusi dalam bentuk *pull request*, pelaporan *bug*, maupun saran fitur baru selalu terbuka melalui [GitHub Issues](https://github.com/GithubFarelAlghazali/freebbonize/issues).
 
