@@ -1,99 +1,275 @@
+<div align="center">
+
+  <img src="public/Freebbonize - Main Logo transparent.webp" alt="Freebbonize Logo" width="80" height="80" />
+
 # Freebbonize
 
-A simple, open-source **Twibbon generator** — let people overlay their photo with an event frame, add a personalized caption, and download the result. Built as a lightweight alternative to Twibbonize that you can fork and re-skin for your own campaign in minutes.
+**A modern, lightweight, and privacy-first open-source Twibbon Campaign Platform**  
+ _Create custom event frames, share dedicated links, and let participants composite their photos with dynamic captions in seconds — without login, watermarks, or ads._
 
-## ✨ Features
+  <p align="center">
+    <img src="https://img.shields.io/badge/React-19.2-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React 19" />
+    <img src="https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+    <img src="https://img.shields.io/badge/Vite-8.3-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
+    <img src="https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" alt="Tailwind CSS v4" />
+    <img src="https://img.shields.io/badge/PostgreSQL-17-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+    <img src="https://img.shields.io/badge/Supabase-Storage-3ECF8E?style=flat-square&logo=supabase&logoColor=white" alt="Supabase" />
+    <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License MIT" />
+  </p>
 
-- **Upload & preview** — drop in a photo and see it composited with the event frame instantly
-- **Adjust** — scale and rotate the photo with sliders, or drag it directly on the canvas to reposition
-- **Personalized caption** — auto-fills a caption template with fields the visitor enters (e.g. name, school), with copy-to-clipboard
-- **Download** — export the final composited image as a PNG
-- **Easy to re-brand** — swap the frame image and edit one JSON file to launch a Twibbon for a different event, no other code changes needed
+</div>
 
-## 🖥️ How it works
+---
 
-The app walks visitors through three steps, controlled by a single `sidebarState` in `App.tsx`:
+## 📸 1. Tampilan & Demo Aplikasi
 
-1. **Landing** — visitor uploads a photo
-2. **Adjust** — visitor scales/rotates/drags the photo over the frame on an HTML5 `<canvas>`
-3. **Download** — the canvas is flattened to a PNG for download, alongside a caption generated from a template
+Freebbonize mengusung sistem desain **Raycast Midnight Command Center** bernuansa gelap elegan (_Void Black_, _Ink_, _Obsidian_, dan aksen _Azure Pulse_).
 
-## 🛠️ Tech Stack
+### Halaman Pembuatan Kampanye (`/`)
 
-- [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
-- [Vite](https://vitejs.dev/) (with the React Compiler enabled)
-- [Tailwind CSS 4](https://tailwindcss.com/)
-- [lucide-react](https://lucide.dev/) for icons
-- [pnpm](https://pnpm.io/) as the package manager
+Form instan tanpa autentikasi untuk meluncurkan kampanye baru dengan _slug_ kustom, upload bingkai rasio bebas, preview interaktif, dan generator template caption.
 
-## 🚀 Getting Started
+| Preview Tampilan                                                                                                  | Deskripsi Alur                                                                                                                                                                                                                                                                                             |
+| ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <img src="DevReferences/imgs/1. Halaman Pembuatan Kampanye.webp" alt="Halaman Pembuatan Kampanye" width="100%" /> | **Halaman Pembuatan Kampanye (`/`)**<br><br>Penyelenggara acara dapat menentukan URL kustom slug, mengunggah bingkai twibbon berasio bebas (drag & drop), melihat preview dimensi otomatis, dan menyusun template kalimat caption media sosial dengan tag variabel dinamis seperti `[NAMA]` dan `[ACARA]`. |
+
+### Halaman Kampanye Dinamis (`/:slug`)
+
+Halaman peserta yang bersih untuk mengunggah foto, menyesuaikan posisi gambar di bawah bingkai twibbon secara _real-time_, dan mengunduh hasil akhir dalam resolusi tinggi.
+
+<table width="100%">
+  <thead>
+    <tr>
+      <th width="50%" align="center">Step 1: Landing (Unggah Foto)</th>
+      <th width="50%" align="center">Step 2: Adjust (Atur Kanvas)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td width="50%" align="center" valign="top">
+        <img src="DevReferences/imgs/1. Landing.webp" alt="Step 1: Landing Page" width="100%" />
+        <br /><br />
+        <p align="left">
+          <b>1. Unggah Foto Peserta</b><br />
+          Peserta membuka tautan kampanye dan memilih atau menyeret (<i>drag & drop</i>) foto profil yang akan dipasang.
+        </p>
+      </td>
+      <td width="50%" align="center" valign="top">
+        <img src="DevReferences/imgs/2. Adjust.webp" alt="Step 2: Adjust Canvas" width="100%" />
+        <br /><br />
+        <p align="left">
+          <b>2. Penyesuaian Kanvas 2D</b><br />
+          Interaksi geser/drag bebas foto, kontrol skala perbesaran (10% - 250%), dan slider rotasi (-180&deg; s.d. 180&deg;).
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <th width="50%" align="center">Step 3: Ready (Unduh & Caption)</th>
+      <th width="50%" align="center">Hasil Twibbon Akhir</th>
+    </tr>
+    <tr>
+      <td width="50%" align="center" valign="top">
+        <img src="DevReferences/imgs/3. Ready.webp" alt="Step 3: Ready & Download" width="100%" />
+        <br /><br />
+        <p align="left">
+          <b>3. Salin Caption & Unduh</b><br />
+          Pengisian variabel form caption dinamis, salin teks ke clipboard dalam 1 klik, dan ekspor instan gambar PNG resolusi penuh.
+        </p>
+      </td>
+      <td width="50%" align="center" valign="top">
+        <img src="DevReferences/imgs/4. Result.webp" alt="Hasil Twibbon Akhir" width="100%" />
+        <br /><br />
+        <p align="left">
+          <b>4. Hasil Twibbon Akhir</b><br />
+          Contoh berkas foto peserta yang telah berhasil dikomposisikan dengan bingkai beresolusi tinggi, siap dibagikan ke media sosial.
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
+## 💡 2. Mengapa Freebbonize? (Problem vs Solution)
+
+Banyak platform twibbon komersial membebani pengguna dengan iklan invasif, registrasi akun wajib, pemaksaan rasio 1:1, serta pengunggahan foto peserta ke server pihak ketiga yang berisiko privasi.
+
+Freebbonize hadir dengan pendekatan yang berbeda:
+
+| Masalah Platform Konvensional                       | Solusi Freebbonize                                                                                                                          |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Foto peserta diproses di server pihak ketiga        | **100% Client-Side Privacy**: Foto diproses lokal di browser pengguna via HTML5 Canvas; foto peserta tidak pernah menyentuh server backend. |
+| Pengguna diwajibkan login/register & dipenuhi iklan | **Zero Friction**: Tanpa login, tanpa registrasi, tanpa iklan, dan tanpa watermark.                                                         |
+| Memaksa crop foto ke rasio kotak (1:1)              | **Bebas Rasio Aspek**: Mendukung rasio potret (4:5, 9:16), lanskap (16:9), kotak (1:1), atau resolusi kustom lainnya.                       |
+| Ekstensi gambar palsu rawan merusak tampilan        | **Validasi Biner Magic Bytes**: Memeriksa header berkas secara biner untuk memastikan format asli PNG, JPG, atau WEBP (maksimal 3MB).       |
+
+---
+
+## ✨ 3. Fitur Utama
+
+- 🚀 **Peluncuran Kampanye Tanpa Login (`/`)**:
+  - Penentuan URL _slug_ kustom (misal: `/dies-natalis-2026`).
+  - Validasi ketersediaan _slug_ secara _real-time_ dengan _debounced check_ ke PostgreSQL.
+  - Dukungan upload bingkai via tombol maupun interaksi **Drag & Drop**.
+- 🔗 **Rute Dinamis Berbagi (`/:slug`)**:
+  - Setiap kampanye memiliki halaman partisipan mandiri yang siap dibagikan ke media sosial.
+  - Tombol 1-klik untuk menyalin tautan kampanye.
+- 🎨 **Kanvas Interaktif 2D Fleksibel**:
+  - Manipulasi foto peserta secara responsif: drag/geser bebas (Pointer Events), zoom skala ($10\% - 250\%$), dan rotasi ($-180^\circ$ s.d. $180^\circ$).
+  - Render kanvas otomatis mengikuti dimensi alami (_natural resolution_) bingkai twibbon.
+- 📝 **Generator Caption Dinamis**:
+  - Pembuat template caption dengan variabel kustom token (contoh: `[nama]`, `[instansi]`, `[jurusan]`).
+  - Modal pengisian variabel otomatis untuk peserta dan tombol salin ke clipboard dalam 1 klik.
+- 🛡️ **Validasi Berkas Berlapis**:
+  - Inspeksi _binary magic bytes_ (PNG, JPEG, WEBP) di sisi browser, Vite dev middleware, dan Supabase Edge Function.
+  - Pembatasan ketat ukuran file maksimal 3MB.
+- ☁️ **Cloud Storage & Database Terintegrasi**:
+  - Penyimpanan bingkai di Supabase Storage Bucket publik CDN.
+  - Database PostgreSQL dengan Row-Level Security (RLS) untuk akses publik anonim yang aman.
+
+---
+
+## 🏗️ 4. Arsitektur & Alur Sistem
+
+### User Flow Diagram
+
+```mermaid
+flowchart TD
+    subgraph Organizer ["Penyelenggara Acara"]
+        A["Buka Halaman /"] --> B["Isi Judul, Slug & Caption Template"]
+        B --> C["Drag & Drop / Upload Bingkai Twibbon"]
+        C --> D{"Validasi 3MB & Magic Bytes"}
+        D -- Valid --> E["Simpan ke Supabase Storage & Database"]
+        D -- Tidak Valid --> C
+        E --> F["Dapatkan Link Kampanye: /:slug"]
+    end
+
+    subgraph Participant ["Peserta Kampanye"]
+        G["Buka Link /:slug"] --> H["Upload Foto Diri"]
+        H --> I["Atur Foto di Kanvas (Geser, Skala, Rotasi)"]
+        I --> J["Isi Variabel Caption (Nama, Instansi, dll.)"]
+        J --> K["Download Twibbon PNG Resolusi Tinggi"]
+        J --> L["Salin Caption ke Clipboard"]
+    end
+
+    F -. Dibagikan ke .-> G
+```
+
+### Teknologi yang Digunakan
+
+- **Frontend:** React 19, TypeScript, React Router 7
+- **Styling:** Tailwind CSS v4, Lucide Icons, Google Fonts (Inter & JetBrains Mono)
+- **Engine Grafis:** HTML5 2D Canvas API (Pointer Events API)
+- **Database & Storage:** PostgreSQL 17 (dengan Triggers & RLS), Supabase Storage CDN
+- **Build Tool:** Vite 8 (dengan React Compiler) & pnpm
+
+---
+
+## 🗄️ 5. Rancangan Database
+
+Database PostgreSQL dirancang dengan dua tabel inti (`campaigns` dan `campaign_analytics`) yang saling berelasi:
+
+<div align="center">
+  <img src="DevReferences/imgs/schema.webp" alt="Rancangan Database PostgreSQL Freebbonize" width="100%" />
+</div>
+
+<br />
+
+| Tabel                           | Deskripsi & Relasi                                                                                                                                                                               |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`public.campaigns`**          | Menyimpan metadata acara, slug unik, URL frame di Supabase Storage, dimensi asli frame ($W \times H$), rasio aspek (kolom _GENERATED ALWAYS_), template caption, dan array JSONB token variabel. |
+| **`public.campaign_analytics`** | Menyimpan metrik unduhan (`download_count` dan `last_download_at`) dengan relasi _foreign key_ `campaign_id` ke tabel `campaigns` berstatus **`ON DELETE CASCADE`**.                             |
+
+> **Catatan Teknis:** Trigger PostgreSQL `init_campaign_analytics` (_SECURITY DEFINER_) secara otomatis menginisialisasi baris analitik setiap kali kampanye baru berhasil dimasukkan. Kebijakan Row-Level Security (RLS) diaktifkan untuk memastikan akses baca dan unggah anonim tetap aman.
+
+---
+
+## 🚀 6. Panduan Instalasi & Konfigurasi
+
+### 1. Kloning Repositori
 
 ```bash
-# clone the repo
 git clone https://github.com/GithubFarelAlghazali/freebbonize.git
 cd freebbonize
+```
 
-# install dependencies
+### 2. Pasang Dependensi
+
+```bash
 pnpm install
+```
 
-# start the dev server
+### 3. Konfigurasi Environment Variables
+
+Salin berkas `.env.example` menjadi `.env`:
+
+```bash
+cp .env.example .env
+```
+
+Lengkapi konfigurasi berikut:
+
+```env
+# Supabase Client Configuration
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+VITE_SUPABASE_STORAGE_BUCKET=freebbonize-files
+
+# Backend & Secret Configuration
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+MAX_FILE_SIZE_BYTES=3145728
+
+# PostgreSQL Direct URL (untuk migration & seeder)
+DATABASE_URL=postgresql://postgres:password@your-host:5432/postgres
+
+# App URL
+VITE_APP_URL=http://localhost:5173
+```
+
+### 4. Eksekusi Migrasi & Fresh Seeder Database
+
+```bash
+# Jalankan seluruh migrasi skema tabel & kebijakan RLS
+pnpm db:migrate
+
+# Jalankan fresh seeder (menghapus data lama & mengisi data contoh awal)
+pnpm db:seed
+```
+
+### 5. Jalankan Server Development
+
+```bash
 pnpm dev
 ```
 
-Then open the local URL Vite prints (usually `http://localhost:5173`).
+Buka browser pada alamat `http://localhost:5173`.
 
-### Available scripts
+---
 
-| Command         | Description                          |
-| --------------- | ------------------------------------- |
-| `pnpm dev`      | Start the Vite dev server             |
-| `pnpm build`    | Type-check and build for production   |
-| `pnpm preview`  | Preview the production build locally  |
-| `pnpm lint`     | Run ESLint                            |
+## 📋 7. Available Scripts
 
-## 🎨 Customizing for your own event
+| Perintah          | Deskripsi                                                        |
+| ----------------- | ---------------------------------------------------------------- |
+| `pnpm dev`        | Menjalankan Vite dev server beserta middleware backend validator |
+| `pnpm build`      | Memeriksa tipe TypeScript dan membundel aset untuk produksi      |
+| `pnpm preview`    | Menjalankan preview lokal dari hasil build produksi              |
+| `pnpm lint`       | Menjalankan ESLint dengan standar _zero error & warning_         |
+| `pnpm db:migrate` | Menjalankan seluruh berkas migrasi SQL secara berurutan          |
+| `pnpm db:seed`    | Menjalankan **fresh seeder** (reset data & isi data contoh baru) |
 
-This project is designed to be forked and re-themed quickly:
+---
 
-1. **Replace the frame** — swap `public/twibbon.png` with your own event frame (a transparent PNG works best, since the user's photo is drawn *underneath* it).
-2. **Edit the campaign data** — update `src/campaign-data.json`:
+## 👥 8. Tim Pengembang & Kontribusi
 
-   ```json
-   {
-     "frameSrc": "/twibbon.png",
-     "caption": "Hello my name is [name] from [school] and i am ready to be part of FancyEvent 2026!",
-     "props": ["name", "school"]
-   }
-   ```
+Proyek ini dikembangkan dan dipelihara secara terbuka:
 
-   - `caption` is the template shown on the download step. Anything in `[brackets]` is a placeholder.
-   - `props` lists which placeholders the visitor gets input fields for — add or remove fields here and they'll automatically appear in the "Adjust caption" form.
-3. **Update copy** — change the headline and description text in `src/components/landing-page.tsx` to match your event.
+- **Lead Developer**: [Farel Alghazali](https://github.com/GithubFarelAlghazali)
+- **Contributor**: [christianxavierVibecode](https://github.com/christianxavierVibecode)
 
-No other code changes are required to launch a new campaign.
+Kontribusi dalam bentuk _pull request_, pelaporan _bug_, maupun saran fitur baru selalu terbuka melalui [GitHub Issues](https://github.com/GithubFarelAlghazali/freebbonize/issues).
 
-## 📁 Project Structure
+---
 
-```
-freebbonize/
-├── public/
-│   └── twibbon.png          # the event frame overlay
-├── src/
-│   ├── components/
-│   │   ├── landing-page.tsx     # step 1: photo upload
-│   │   ├── adjust-page.tsx      # step 2: scale/rotate controls
-│   │   ├── download-page.tsx    # step 3: caption + download
-│   │   └── twibbon-canvas.tsx   # canvas compositing + drag logic
-│   ├── campaign-data.json   # frame path, caption template, fields
-│   ├── App.tsx               # top-level state machine (landing/adjust/ready)
-│   └── main.tsx
-└── package.json
-```
+## 📄 9. Lisensi
 
-## 🤝 Contributing
-
-Issues and pull requests are welcome — feel free to fork the repo and submit improvements.
-
-## 📄 License
-
-Licensed under the [MIT License](./LICENSE).
+Proyek ini didistribusikan di bawah lisensi resmi **[MIT License](./LICENSE)**. Bebas digunakan untuk keperluan pribadi, komunitas, edukasi, maupun komersial.
